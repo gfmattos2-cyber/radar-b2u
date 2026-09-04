@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Radar B2U · Prospecção Comercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root {
+    --grad-1: #FF9A3D;
+    --grad-2: #F04E23;
+    --grad-3: #E8391B;
+    --grad: linear-gradient(135deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
+    --ink: #241a16;
+    --ink-soft: #63534c;
+    --paper: #fffaf6;
+    --card: #ffffff;
+    --line: #f0e2d8;
+    --line-strong: #e4d0c2;
+    --shadow: 0 4px 18px rgba(232, 57, 27, 0.08), 0 1px 3px rgba(36, 26, 22, 0.05);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.45;
+    padding-bottom: calc(90px + var(--safe-bottom));
+    overscroll-behavior-y: none;
+  }
+  h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; margin: 0; }
+  
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* ---------- CABEÇALHO ---------- */
+  header.app {
+    background: var(--grad);
+    color: #fff;
+    padding: 14px 16px 10px;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 4px 20px rgba(232, 57, 27, 0.28);
+  }
+  .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: rgba(255, 255, 255, 0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+  }
+  .brand-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; line-height: 1; }
+  .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; opacity: 0.9; margin-top: 2px; }
+
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .btn-hdr {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff; border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+  .btn-hdr:active { transform: scale(0.96); background: rgba(255,255,255,0.3); }
+
+  .city-selector-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,0,0,0.18); border-radius: 10px;
+    padding: 6px 10px; margin-top: 10px; gap: 8px;
+  }
+  .city-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #fff; }
+  .city-select {
+    background: #fff; color: var(--grad-3); border: none;
+    border-radius: 6px; font-family: 'Poppins', sans-serif;
+    font-size: 12.5px; font-weight: 700; padding: 4px 8px;
+    outline: none; cursor: pointer; max-width: 170px;
+  }
+
+  .sync-indicator {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    display: flex; align-items: center; gap: 5px;
+    color: rgba(255,255,255,0.85); margin-top: 6px;
+  }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
+  .sync-dot.syncing { background: #f1c40f; animation: pulse 1s infinite; }
+  .sync-dot.offline { background: #e74c3c; }
+
+  @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+  /* ---------- NAVEGAÇÃO ENTRE DIAS E ABAS ---------- */
+  .daybar {
+    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 0;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .daybar::-webkit-scrollbar { display: none; }
+  .daychip {
+    flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; padding: 6px 12px;
+    border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3); color: #fff;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .daychip.active { background: #fff; color: var(--grad-3); font-weight: 700; border-color: #fff; }
+
+  .viewtabs { display: flex; gap: 6px; padding: 10px 16px 12px; }
+  .viewtab {
+    flex: 1; text-align: center; padding: 8px 0;
+    border-radius: 10px; background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28); color: #fff;
+    font-weight: 600; font-size: 12.5px; cursor: pointer;
+  }
+  .viewtab.active { background: #fff; color: var(--grad-3); }
+
+  /* ---------- CONTEÚDO PRINCIPAL ---------- */
+  main { padding: 12px 14px 8px; max-width: 680px; margin: 0 auto; }
+
+  .daymeta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 4px 2px 10px;
+  }
+  .daymeta .lbl { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; }
+  .daymeta .progress-pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft);
+    background: #fff; border: 1px solid var(--line-strong); padding: 4px 9px; border-radius: 999px;
+  }
+  .progress-pill b { color: var(--grad-3); }
+
+  .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search-input {
+    flex: 1; background: #fff; border: 1px solid var(--line-strong);
+    border-radius: 10px; padding: 8px 12px; font-size: 13.5px;
+    font-family: inherit; color: var(--ink);
+  }
+  .search-input:focus { outline: none; border-color: var(--grad-2); }
+
+  /* ---------- CARDS DE VISITA ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 13px 13px 11px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .card.done { opacity: 0.88; border-color: #c9bdb4; background: #faf8f6; }
+  
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .stopnum {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700;
+    color: #fff; background: var(--grad);
+    width: 24px; height: 24px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .card-title-wrap { flex: 1; min-width: 0; }
+  .card-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14.5px; line-height: 1.25; }
+  .card-seg {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.03em;
+    color: var(--grad-3); text-transform: uppercase; font-weight: 700; margin-top: 2px;
+  }
+  
+  .card-addr { font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.35; }
+  .badge-far {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    background: #ffe3db; color: var(--grad-3); padding: 2px 6px;
+    border-radius: 4px; font-weight: 600; margin-left: 4px;
+  }
+
+  .card-quick-actions { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .btn-action {
+    font-size: 11px; font-weight: 600; padding: 5px 9px;
+    border-radius: 8px; border: 1px solid var(--line-strong);
+    background: #fff; color: var(--ink); cursor: pointer;
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+  }
+  .btn-action.primary { background: #fff0e8; border-color: var(--grad-1); color: var(--grad-3); }
+
+  .status-row {
+    margin-top: 10px; padding-top: 9px;
+    border-top: 1px dashed var(--line);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .status-select-wrap { display: flex; align-items: center; gap: 8px; }
+  .status-select {
+    flex: 1; padding: 7px 10px; border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12.5px;
+    border: 1.5px solid transparent; cursor: pointer;
+    color: #fff; outline: none;
+  }
+  .status-date { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-soft); }
+
+  .note-box {
+    margin-top: 6px; font-size: 12px;
+    background: #fdfbf9; border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; color: var(--ink);
+    cursor: pointer;
+  }
+  .note-box.empty { color: #9c8a82; font-style: italic; }
+  .note-box.has-text { font-weight: 500; color: #3d2f28; }
+
+  .conc-preview {
+    margin-top: 5px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    background: #e0f7fa; color: #006064; padding: 3px 7px; border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* ---------- MAPA ---------- */
+  #map-view { display: none; height: calc(100vh - 240px); width: 100%; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+
+  /* ---------- MODAIS ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 100; display: none; align-items: flex-end; justify-content: center;
+  }
+  .modal-sheet {
+    background: #fff; width: 100%; max-width: 600px;
+    border-radius: 20px 20px 0 0; max-height: 90vh;
+    overflow-y: auto; padding: 18px 18px 24px;
+    animation: slideUp 0.25s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .modal-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .btn-close { background: #eee; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; }
+
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 4px; display: block; }
+  .form-input, .form-textarea, .form-select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--line-strong);
+    border-radius: 8px; font-size: 13.5px; font-family: inherit;
+  }
+  .form-row-2 { display: flex; gap: 8px; }
+
+  .btn-submit {
+    background: var(--grad); color: #fff; border: none;
+    border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;
+    width: 100%; cursor: pointer; margin-top: 10px;
+  }
+
+  .toast {
+    position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
+    background: #241a16; color: #fff; padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; z-index: 200; display: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+
+  .fab-add {
+    position: fixed; right: 18px; bottom: calc(24px + var(--safe-bottom));
+    background: var(--grad); color: #fff; width: 54px; height: 54px;
+    border-radius: 50%; border: none; box-shadow: 0 6px 20px rgba(232, 57, 27, 0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: bold; cursor: pointer; z-index: 45;
+  }
+</style>
+</head>
+
+<body>
+
+<header class="app">
+  <div class="brandrow">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <div>
+        <div class="brand-name">RADAR B2U</div>
+        <div class="brand-sub">PROSPECÇÃO COMERCIAL</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-hdr" onclick="fetchDataFromSheet()" title="Recarregar dados da planilha">🔄 Atualizar</button>
+      <button class="btn-hdr" onclick="openConfigModal()">⚙️ Planilha</button>
+    </div>
+  </div>
+
+  <div class="city-selector-bar">
+    <div class="city-label">🏙️ Cidade:</div>
+    <select class="city-select" id="citySelect" onchange="changeCity(this.value)">
+      <option value="Pedro Leopoldo">Pedro Leopoldo</option>
+      <option value="Matozinhos">Matozinhos</option>
+      <option value="Lagoa Santa">Lagoa Santa</option>
+      <option value="Vespasiano">Vespasiano</option>
+      <option value="Juatuba">Juatuba</option>
+      <option value="Mateus Leme">Mateus Leme</option>
+      <option value="Itaúna">Itaúna</option>
+      <option value="Congonhas">Congonhas</option>
+      <option value="Conselheiro Lafaiete">Conselheiro Lafaiete</option>
+      <option value="Ouro Branco">Ouro Branco</option>
+    </select>
+  </div>
+
+  <div class="sync-indicator" id="syncStatus">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncText">Pronto</span>
+  </div>
+
+  <div class="daybar" id="dayBar"></div>
+
+  <div class="viewtabs">
+    <div class="viewtab active" id="tabRota" onclick="switchView('rota')">🧭 Rota do Dia</div>
+    <div class="viewtab" id="tabMapa" onclick="switchView('mapa')">🗺️ Mapa Interativo</div>
+  </div>
+</header>
+
+<main>
+  <div class="search-box" id="searchWrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por nome, rua ou segmento..." oninput="handleSearch()">
+  </div>
+
+  <div class="daymeta" id="dayMetaWrap">
+    <div class="lbl" id="dayLabel">Dia 1</div>
+    <div class="progress-pill" id="dayProgress">Visitados: <b>0/0</b></div>
+  </div>
+
+  <div id="cardsWrap"></div>
+  <div id="map-view"></div>
+</main>
+
+<button class="fab-add" onclick="openAddModal()" title="Adicionar Ponto na Rota">+</button>
+<div class="toast" id="toast">Ação concluída!</div>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="modalQualify">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <div class="modal-title" id="qualifyTitle">Qualificar Estabelecimento</div>
+      <button class="btn-close" onclick="closeModal('modalQualify')">✕</button>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Nome do Contato / Decisor</label>
+      <input type="text" class="form-input" id="q_contact" placeholder="Ex: Carlos (Proprietário)">
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Telefone / WhatsApp</label>
+        <input type="text" class="form-input" id="q_phone" placeholder="(31) 99999-9999">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">E-mail</label>
+        <input type="email" class="form-input" id="q_email" placeholder="contato@empresa.com">
+      </div>
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Consumo Médio</label>
+        <input type="text" class="form-input" id="q_consumo" placeholder="Ex: R$ 3.500 ou 4.000 kWh">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Padrão Elétrico</label>
+        <select class="form-select" id="q_padrao">
+          <option value="">Selecione...</option>
+          <option value="Monofásico">Monofásico (30 kWh disp.)</option>
+          <option value="Bifásico">Bifásico (50 kWh disp.)</option>
+          <option value="Trifásico">Trifásico (100 kWh disp.)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="background: #f0fbfc; border: 1px solid #b2ebf2; border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+      <div class="eyebrow" style="color: #00838f; margin-bottom: 6px;">Inteligência de Concorrência</div>
+      <div class="form-group">
+        <label class="form-label">Concorrente Atual (se houver)</label>
+        <input type="text" class="form-input" id="q_concorrente" placeholder="Ex: Órigo, Ultragaz, EDP, CEMIG SIM">
+      </div>
+      <div class="form-row-2">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Desconto Atual (%)</label>
+          <input type="text" class="form-input" id="q_desconto_concorrente" placeholder="Ex: 15%">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Fidelidade / Fim do Contrato</label>
+          <input type="text" class="form-input" id="q_fidelidade" placeholder="Ex: Até Dez/2026 ou Sem fidelidade">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Observações da Visita</label>
+      <textarea class="form-textarea" id="q_note" rows="3" placeholder="Detalhes da conversa, melhor horário para retorno, objeções..."></textarea>
+    </div>
+
+    <button class="btn-submit" onclick="saveQualifyData()">Salvar e Sincronizar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAdd">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <div class="modal-title">+ Adicionar Ponto na Rota</div>
+      <button class="btn-close" onclick="closeModal('modalAdd')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Cidade *</label>
+      <input type="text" class="form-input" id="add_city" readonly>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nome do Estabelecimento *</label>
+      <input type="text" class="form-input" id="add_name" placeholder="Ex: Panificadora Central">
+    </div>
+
+    <div class="form-row-2">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Segmento *</label>
+        <input type="text" class="form-input" id="add_segment" placeholder="Ex: Padaria, Restaurante">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Dia da Rota *</label>
+        <select class="form-select" id="add_day"></select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Endereço Completo *</label>
+      <input type="text" class="form-input" id="add_address" placeholder="Rua, número, bairro">
+    </div>
+
+    <button type="button" class="btn-action" style="width: 100%; justify-content: center; margin-bottom: 12px;" onclick="fetchCurrentGPS()">
+      📍 Usar Minha Localização GPS Atual
+    </button>
+
+    <div class="form-row-2">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Bairro</label>
+        <input type="text" class="form-input" id="add_bairro" placeholder="Ex: Centro">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Telefone</label>
+        <input type="text" class="form-input" id="add_phone" placeholder="(31) 99999-9999">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Observações Iniciais</label>
+      <textarea class="form-textarea" id="add_note" rows="2" placeholder="Ex: Vizinho ao ponto visitado..."></textarea>
+    </div>
+
+    <button class="btn-submit" onclick="saveNewEstablishment()">Adicionar e Sincronizar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalConfig">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <div class="modal-title">Configurações & Cidades</div>
+      <button class="btn-close" onclick="closeModal('modalConfig')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">URL do Webhook / API da Planilha</label>
+      <input type="text" class="form-input" id="cfg_apiUrl" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nome do Vendedor / Responsável</label>
+      <input type="text" class="form-input" id="cfg_seller" placeholder="Ex: Gabriel Mattos ou Vendedor 1">
+    </div>
+
+    <button class="btn-submit" onclick="saveConfig()">Salvar Configuração</button>
+
+    <hr style="border:0; border-top:1px solid var(--line); margin:16px 0;">
+
+    <div class="eyebrow" style="color:var(--grad-3); margin-bottom:6px;">Importar Nova Cidade (TSV do Gemini/Maps)</div>
+    <div class="form-group">
+      <label class="form-label">Nome da Cidade</label>
+      <input type="text" class="form-input" id="cfg_importCityName" placeholder="Ex: Matozinhos">
+    </div>
+    <div class="form-group">
+      <textarea class="form-textarea" id="cfg_tsvImport" rows="3" placeholder="Cole aqui a tabela TSV da cidade..."></textarea>
+    </div>
+    <button class="btn-action primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="importTSVForCity()">
+      📥 Adicionar Cidade & Rotas ao App
+    </button>
+  </div>
+</div>
+
+<script>
+const STATUS_COLORS = {
+  "Não visitado": "#8a7a72",
+  "Sem decisor no local": "#e8b04b",
+  "Não elegível": "#5b4a43",
+  "Recusou": "#c0392b",
+  "Retornar depois": "#e8891a",
+  "Interessado - aguardando fatura": "#2980b9",
+  "Proposta apresentada": "#8e44ad",
+  "Em negociação": "#F04E23",
+  "Fechado": "#27ae60",
+  "Termo assinado": "#1b5e20",
+  "Já com desconto": "#00838f"
+};
+const STATUS_LIST = Object.keys(STATUS_COLORS);
+
+const DEFAULT_CITIES = [
+  "Pedro Leopoldo", "Matozinhos", "Lagoa Santa", "Vespasiano",
+  "Juatuba", "Mateus Leme", "Itaúna", "Congonhas", "Conselheiro Lafaiete", "Ouro Branco"
+];
+
+const DEFAULT_STOPS = [
+  {id:"pl-01", day:1, cidade:"Pedro Leopoldo", name:"Rancho Festas e Eventos", segment:"Casa de eventos", address:"R. Nossa Sra. do Rosário, 1599 - Espraiado", bairro:"fora do circuito, ~7,2km", far:true, phone:"+55 31 99089-6855", lat:-19.6856888, lng:-44.0520705},
+  {id:"pl-02", day:1, cidade:"Pedro Leopoldo", name:"Recanto Tapera", segment:"Pousada", address:"R. São Geraldo, 158 - Tapera", bairro:"fora do circuito, ~5,6km", far:true, phone:"+55 31 99665-2477", lat:-19.6720171, lng:-44.045876},
+  {id:"pl-03", day:1, cidade:"Pedro Leopoldo", name:"COLÉGIO M2", segment:"Escola", address:"R. Teófilo Calazans de Barros, 100 - Santo Antonio", bairro:"fora do circuito, ~3,3km", far:true, phone:"+55 31 3662-3901", lat:-19.6485871, lng:-44.0532064},
+  {id:"pl-04", day:1, cidade:"Pedro Leopoldo", name:"Celeiro de Hóspedes", segment:"Pousada", address:"R. Comendador Antônio Alves, 2565 - Santo Antônio", bairro:"Santo Antônio", phone:"+55 31 99770-1025", lat:-19.6349319, lng:-44.0305764},
+  {id:"pl-05", day:1, cidade:"Pedro Leopoldo", name:"Big Pão", segment:"Padaria", address:"R. Comendador Antônio Alves, 1960 - São José", bairro:"São José", phone:"+55 31 3661-2090", lat:-19.6303234, lng:-44.0345307},
+  {id:"pl-06", day:1, cidade:"Pedro Leopoldo", name:"Revisauto Centro Automotivo", segment:"Oficina mecânica", address:"R. Comendador Antônio Alves, 1415 - Centro", bairro:"Centro", phone:"+55 31 98982-0536", lat:-19.6263561, lng:-44.0373868},
+  {id:"pl-07", day:1, cidade:"Pedro Leopoldo", name:"Marina Coisas da Roça", segment:"Padaria", address:"R. Comendador Antônio Alves, 1213 - Centro", bairro:"Centro", phone:"+55 31 3661-3141", lat:-19.6248589, lng:-44.038407},
+  {id:"pl-08", day:1, cidade:"Pedro Leopoldo", name:"Zé Wilson Restaurante", segment:"Restaurante", address:"R. Comendador Antônio Alves, 1009 - Centro", bairro:"Centro", phone:"+55 31 3661-1223", lat:-19.6232364, lng:-44.0398478},
+  {id:"pl-09", day:1, cidade:"Pedro Leopoldo", name:"Academia PULSAR", segment:"Academia", address:"R. Comendador Antônio Alves, 645 - Centro", bairro:"Centro", phone:"+55 31 3660-4021", lat:-19.6207676, lng:-44.0416635},
+  {id:"pl-10", day:1, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
+];
+
+const LS_STOPS_KEY = "radar_b2u_stops_multi_v1";
+const LS_STATE_KEY = "radar_b2u_state_multi_v1";
+const LS_CONFIG_KEY = "radar_b2u_config_multi_v1";
+const LS_SELECTED_CITY = "radar_b2u_current_city_v1";
+
+let STOPS = loadStops();
+let STATE = loadState();
+let CONFIG = loadConfig();
+let currentCity = localStorage.getItem(LS_SELECTED_CITY) || "Pedro Leopoldo";
+
+let currentDay = 1;
+let currentView = "rota";
+let currentEditingId = null;
+let currentSearchTerm = "";
+let map = null;
+let mapLayer = null;
+
+function loadStops() {
+  try {
+    const raw = localStorage.getItem(LS_STOPS_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_STOPS;
+  } catch(e) { return DEFAULT_STOPS; }
+}
+function saveStops(stops) {
+  STOPS = stops;
+  localStorage.setItem(LS_STOPS_KEY, JSON.stringify(stops));
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_STATE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+function saveState(state) {
+  STATE = state;
+  localStorage.setItem(LS_STATE_KEY, JSON.stringify(state));
+}
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(LS_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : { apiUrl: "", sellerName: "Gabriel Mattos" };
+  } catch(e) { return { apiUrl: "", sellerName: "Gabriel Mattos" }; }
+}
+
+function getStopData(id) {
+  const base = STOPS.find(s => s.id === id) || {};
+  const dyn = STATE[id] || {};
+  return Object.assign({
+    status: "Não visitado",
+    date: "",
+    note: "",
+    contact: "",
+    phone: base.phone || "",
+    email: "",
+    consumo: "",
+    padrao: "",
+    concorrente: "",
+    desconto_concorrente: "",
+    fidelidade: "",
+    cidade: base.cidade || currentCity,
+    responsible: CONFIG.sellerName || "Vendedor"
+  }, base, dyn);
+}
+
+function initApp() {
+  populateCityDropdown();
+  renderDayBar();
+  renderCards();
+  updateSyncStatusHeader();
+}
+
+function populateCityDropdown() {
+  const sel = document.getElementById("citySelect");
+  const availableCities = Array.from(new Set([...DEFAULT_CITIES, ...STOPS.map(s => s.cidade).filter(Boolean)]));
+  sel.innerHTML = availableCities.map(c => `<option value="${c}" ${c === currentCity ? 'selected' : ''}>${c}</option>`).join("");
+}
+
+function changeCity(city) {
+  currentCity = city;
+  localStorage.setItem(LS_SELECTED_CITY, city);
+  currentDay = 1;
+  renderDayBar();
+  renderCards();
+  if (currentView === "mapa") renderMap();
+  showToast(`Cidade: ${city}`);
+}
+
+function getCityStops() {
+  return STOPS.filter(s => (s.cidade || "Pedro Leopoldo").toLowerCase() === currentCity.toLowerCase());
+}
+
+function getDaysList() {
+  const cityStops = getCityStops();
+  const days = Array.from(new Set(cityStops.map(s => s.day || 1))).sort((a,b) => a - b);
+  return days.length > 0 ? days : [1];
+}
+
+function renderDayBar() {
+  const dayBar = document.getElementById("dayBar");
+  const days = getDaysList();
+  if (!days.includes(currentDay)) currentDay = days[0];
+
+  dayBar.innerHTML = days.map(d => `
+    <div class="daychip ${d === currentDay ? 'active' : ''}" onclick="selectDay(${d})">Dia ${d}</div>
+  `).join("");
+}
+
+function selectDay(d) {
+  currentDay = d;
+  renderDayBar();
+  renderCards();
+  if (currentView === "mapa") renderMap();
+}
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById("tabRota").className = `viewtab ${view === 'rota' ? 'active' : ''}`;
+  document.getElementById("tabMapa").className = `viewtab ${view === 'mapa' ? 'active' : ''}`;
+
+  if (view === "rota") {
+    document.getElementById("cardsWrap").style.display = "block";
+    document.getElementById("searchWrap").style.display = "flex";
+    document.getElementById("dayMetaWrap").style.display = "flex";
+    document.getElementById("map-view").style.display = "none";
+  } else {
+    document.getElementById("cardsWrap").style.display = "none";
+    document.getElementById("searchWrap").style.display = "none";
+    document.getElementById("dayMetaWrap").style.display = "none";
+    document.getElementById("map-view").style.display = "block";
+    setTimeout(renderMap, 100);
+  }
+}
+
+function handleSearch() {
+  currentSearchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+  renderCards();
+}
+
+function renderCards() {
+  const wrap = document.getElementById("cardsWrap");
+  let dayStops = getCityStops().filter(s => (s.day || 1) === currentDay);
+
+  if (currentSearchTerm) {
+    dayStops = getCityStops().filter(s => 
+      s.name.toLowerCase().includes(currentSearchTerm) ||
+      (s.address && s.address.toLowerCase().includes(currentSearchTerm)) ||
+      (s.segment && s.segment.toLowerCase().includes(currentSearchTerm)) ||
+      (s.bairro && s.bairro.toLowerCase().includes(currentSearchTerm))
+    );
+  }
+
+  const total = dayStops.length;
+  const visited = dayStops.filter(s => {
+    const st = (STATE[s.id] && STATE[s.id].status) || "Não visitado";
+    return st !== "Não visitado";
+  }).length;
+  
+  document.getElementById("dayLabel").innerText = currentSearchTerm ? `Busca em ${currentCity}` : `${currentCity} · Dia ${currentDay}`;
+  document.getElementById("dayProgress").innerHTML = `Visitados: <b>${visited}/${total}</b>`;
+
+  if (dayStops.length === 0) {
+    wrap.innerHTML = `<div style="text-align:center; padding:35px 20px; color:#888;">
+      Nenhum estabelecimento cadastrado para <b>${currentCity} (Dia ${currentDay})</b>.<br>
+      <small>Toque em <b>+</b> para cadastrar ou importe a rota nas configurações ⚙️.</small>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = dayStops.map((stop, index) => {
+    const data = getStopData(stop.id);
+    const statusColor = STATUS_COLORS[data.status] || "#8a7a72";
+    const isDone = data.status !== "Não visitado";
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+    const wazeUrl = stop.lat && stop.lng ? `https://waze.com/ul?ll=${stop.lat},${stop.lng}&navigate=yes` : `https://waze.com/ul?q=${encodeURIComponent(stop.address + ' ' + currentCity)}`;
+    const rawPhone = (data.phone || "").replace(/\D/g, "");
+    const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
+
+    return `
+      <div class="card ${isDone ? 'done' : ''}" id="card-${stop.id}">
+        <div class="card-top">
+          <div class="stopnum">${index + 1}</div>
+          <div class="card-title-wrap">
+            <div class="card-name">${stop.name}</div>
+            <div class="card-seg">${stop.segment || 'Comércio'}</div>
+          </div>
+        </div>
+
+        <div class="card-addr">
+          📍 ${stop.address}
+          ${stop.far ? `<span class="badge-far">${stop.bairro}</span>` : (stop.bairro ? ` • <b>${stop.bairro}</b>` : '')}
+        </div>
+
+        ${data.concorrente ? `
+          <div class="conc-preview">
+            ⚡ Concorrente: <b>${data.concorrente}</b> ${data.desconto_concorrente ? `(${data.desconto_concorrente})` : ''}
+          </div>
+        ` : ''}
+
+        <div class="card-quick-actions">
+          <a href="${mapsUrl}" target="_blank" class="btn-action primary">🗺️ Maps</a>
+          <a href="${wazeUrl}" target="_blank" class="btn-action">🚗 Waze</a>
+          ${data.phone ? `<a href="tel:${data.phone}" class="btn-action">📞 Ligar</a>` : ''}
+          ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn-action">💬 WhatsApp</a>` : ''}
+          <button class="btn-action" onclick="openQualifyModal('${stop.id}')">✏️ Qualificar</button>
+        </div>
+
+        <div class="status-row">
+          <div class="status-select-wrap">
+            <select class="status-select" style="background:${statusColor};" onchange="updateStopStatus('${stop.id}', this.value)">
+              ${STATUS_LIST.map(st => `<option value="${st}" ${st === data.status ? 'selected' : ''}>${st}</option>`).join("")}
+            </select>
+            ${data.date ? `<span class="status-date">🕒 ${data.date.split(' ')[0]}</span>` : ''}
+          </div>
+
+          <div class="note-box ${data.note ? 'has-text' : 'empty'}" onclick="openQualifyModal('${stop.id}')">
+            ${data.note ? `📝 ${data.note}` : '+ Adicionar notas da visita...'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function syncItemToSheets(itemData) {
+  const syncDot = document.getElementById("syncDot");
+  const syncText = document.getElementById("syncText");
+
+  if (!CONFIG.apiUrl) {
+    syncDot.className = "sync-dot";
+    syncText.innerText = "Salvo localmente";
+    return;
+  }
+
+  syncDot.className = "sync-dot syncing";
+  syncText.innerText = "Sincronizando com nuvem...";
+
+  try {
+    const payload = { action: "update_or_insert", data: itemData };
+    await fetch(CONFIG.apiUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    syncDot.className = "sync-dot";
+    syncText.innerText = "Sincronizado na nuvem";
+    showToast("✓ Sincronizado na planilha!");
+  } catch (err) {
+    syncDot.className = "sync-dot offline";
+    syncText.innerText = "Offline (salvo no celular)";
+  }
+}
+
+async function fetchDataFromSheet() {
+  if (!CONFIG.apiUrl) {
+    alert("Configure a URL do Webhook em ⚙️ Planilha primeiro.");
+    return;
+  }
+  showToast("🔄 Puxando dados da nuvem...");
+  try {
+    const res = await fetch(CONFIG.apiUrl);
+    const json = await res.json();
+    if (json.success && json.rows && json.rows.length > 0) {
+      saveStops(json.rows);
+      populateCityDropdown();
+      renderDayBar();
+      renderCards();
+      showToast(`✓ ${json.rows.length} registros carregados!`);
+    } else {
+      showToast("Planilha vazia ou sem novos dados.");
+    }
+  } catch(e) {
+    alert("Erro ao sincronizar dados: " + e.message);
+  }
+}
+
+function updateStopStatus(id, newStatus) {
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  
+  if (!STATE[id]) STATE[id] = {};
+  STATE[id].status = newStatus;
+  STATE[id].date = dateStr;
+  STATE[id].responsible = CONFIG.sellerName || "Vendedor";
+  saveState(STATE);
+
+  renderCards();
+  syncItemToSheets(getStopData(id));
+}
+
+function openQualifyModal(id) {
+  currentEditingId = id;
+  const data = getStopData(id);
+  
+  document.getElementById("qualifyTitle").innerText = `Qualificar: ${data.name}`;
+  document.getElementById("q_contact").value = data.contact || "";
+  document.getElementById("q_phone").value = data.phone || "";
+  document.getElementById("q_email").value = data.email || "";
+  document.getElementById("q_consumo").value = data.consumo || "";
+  document.getElementById("q_padrao").value = data.padrao || "";
+  document.getElementById("q_concorrente").value = data.concorrente || "";
+  document.getElementById("q_desconto_concorrente").value = data.desconto_concorrente || "";
+  document.getElementById("q_fidelidade").value = data.fidelidade || "";
+  document.getElementById("q_note").value = data.note || "";
+
+  document.getElementById("modalQualify").style.display = "flex";
+}
+
+function saveQualifyData() {
+  if (!currentEditingId) return;
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  if (!STATE[currentEditingId]) STATE[currentEditingId] = {};
+  STATE[currentEditingId].contact = document.getElementById("q_contact").value.trim();
+  STATE[currentEditingId].phone = document.getElementById("q_phone").value.trim();
+  STATE[currentEditingId].email = document.getElementById("q_email").value.trim();
+  STATE[currentEditingId].consumo = document.getElementById("q_consumo").value.trim();
+  STATE[currentEditingId].padrao = document.getElementById("q_padrao").value;
+  STATE[currentEditingId].concorrente = document.getElementById("q_concorrente").value.trim();
+  STATE[currentEditingId].desconto_concorrente = document.getElementById("q_desconto_concorrente").value.trim();
+  STATE[currentEditingId].fidelidade = document.getElementById("q_fidelidade").value.trim();
+  STATE[currentEditingId].note = document.getElementById("q_note").value.trim();
+  STATE[currentEditingId].date = dateStr;
+
+  if (STATE[currentEditingId].concorrente && (!STATE[currentEditingId].status || STATE[currentEditingId].status === "Não visitado")) {
+    STATE[currentEditingId].status = "Já com desconto";
+  }
+
+  saveState(STATE);
+  closeModal("modalQualify");
+  renderCards();
+
+  syncItemToSheets(getStopData(currentEditingId));
+}
+
+function openAddModal() {
+  document.getElementById("add_city").value = currentCity;
+  const sel = document.getElementById("add_day");
+  const days = getDaysList();
+  sel.innerHTML = days.map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>Dia ${d}</option>`).join("") +
+                  `<option value="${Math.max(...days) + 1}">+ Novo Dia (${Math.max(...days) + 1})</option>`;
+                  
+  document.getElementById("add_name").value = "";
+  document.getElementById("add_segment").value = "";
+  document.getElementById("add_address").value = "";
+  document.getElementById("add_bairro").value = "";
+  document.getElementById("add_phone").value = "";
+  document.getElementById("add_note").value = "";
+  document.getElementById("modalAdd").style.display = "flex";
+}
+
+function fetchCurrentGPS() {
+  if (!navigator.geolocation) return alert("GPS não suportado.");
+  showToast("📍 Obtendo GPS...");
+  navigator.geolocation.getCurrentPosition(pos => {
+    window.tempNewLat = pos.coords.latitude;
+    window.tempNewLng = pos.coords.longitude;
+    document.getElementById("add_address").value = `Coletado via GPS (${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)})`;
+    showToast("✓ GPS capturado!");
+  }, err => alert("Erro ao capturar GPS. Digite o endereço."));
+}
+
+function saveNewEstablishment() {
+  const name = document.getElementById("add_name").value.trim();
+  const segment = document.getElementById("add_segment").value.trim();
+  const address = document.getElementById("add_address").value.trim();
+  const day = parseInt(document.getElementById("add_day").value, 10);
+  const bairro = document.getElementById("add_bairro").value.trim();
+  const phone = document.getElementById("add_phone").value.trim();
+  const note = document.getElementById("add_note").value.trim();
+
+  if (!name || !address) return alert("Preencha Nome e Endereço.");
+
+  const newId = "manual-" + new Date().getTime();
+  const newStop = {
+    id: newId,
+    day: day,
+    cidade: currentCity,
+    name: name,
+    segment: segment || "Comércio",
+    address: address,
+    bairro: bairro || "Local",
+    phone: phone || "",
+    lat: window.tempNewLat || null,
+    lng: window.tempNewLng || null
+  };
+
+  STOPS.push(newStop);
+  saveStops(STOPS);
+
+  if (note) {
+    const now = new Date();
+    const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    STATE[newId] = { note: note, date: dateStr, status: "Não visitado" };
+    saveState(STATE);
+  }
+
+  currentDay = day;
+  closeModal("modalAdd");
+  renderDayBar();
+  renderCards();
+  showToast("✓ Ponto adicionado à rota!");
+
+  syncItemToSheets(getStopData(newId));
+}
+
+function openConfigModal() {
+  document.getElementById("cfg_apiUrl").value = CONFIG.apiUrl || "";
+  document.getElementById("cfg_seller").value = CONFIG.sellerName || "";
+  document.getElementById("cfg_importCityName").value = currentCity;
+  document.getElementById("modalConfig").style.display = "flex";
+}
+
+function saveConfig() {
+  CONFIG.apiUrl = document.getElementById("cfg_apiUrl").value.trim();
+  CONFIG.sellerName = document.getElementById("cfg_seller").value.trim() || "Gabriel Mattos";
+  localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(CONFIG));
+  closeModal("modalConfig");
+  updateSyncStatusHeader();
+  showToast("✓ Configuração salva!");
+}
+
+function importTSVForCity() {
+  const cityNameInput = document.getElementById("cfg_importCityName").value.trim();
+  const raw = document.getElementById("cfg_tsvImport").value.trim();
+  if (!raw) return alert("Cole o TSV gerado pelo Gemini antes de importar.");
+
+  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+  if (lines.length <= 1) return alert("Nenhuma linha encontrada no texto colado.");
+
+  const startIdx = lines[0].includes("Nome") || lines[0].includes("Dia") ? 1 : 0;
+  const newStops = [];
+  let detectedCity = cityNameInput;
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const cols = lines[i].split("\t");
+    let day = parseInt(cols[0], 10);
+    let name, phone, email, address, bairro, cidade, segment, status, consumo, padrao, concorrente, descConc, fidelidade, note;
+
+    if (!isNaN(day) && cols.length >= 8) {
+      day = day || 1;
+      name = cols[1] || "Sem Nome";
+      phone = cols[3] || "";
+      email = cols[4] || "";
+      address = cols[5] || "";
+      bairro = cols[6] || "";
+      cidade = cols[7] || cityNameInput || currentCity;
+      segment = cols[8] || "Comércio";
+      status = cols[9] || "Não visitado";
+      consumo = cols[10] || "";
+      padrao = cols[11] || "";
+      concorrente = cols[12] || "";
+      descConc = cols[13] || "";
+      fidelidade = cols[14] || "";
+      note = cols[17] || "";
+    } else {
+      day = Math.floor((i - startIdx) / 30) + 1;
+      name = cols[0] || "Sem Nome";
+      address = cols[2] || cols[1] || "";
+      phone = cols[3] || "";
+      segment = cols[5] || "Comércio";
+      bairro = cols[6] || "";
+      cidade = cols[7] || cityNameInput || currentCity;
+    }
+
+    if (!detectedCity && cidade) detectedCity = cidade;
+    const stopId = `imp-${(cidade || 'city').toLowerCase().replace(/\s+/g,'-')}-${i}-${new Date().getTime()}`;
+
+    newStops.push({
+      id: stopId,
+      day: day,
+      cidade: cidade,
+      name: name,
+      address: address,
+      phone: phone,
+      segment: segment,
+      bairro: bairro
+    });
+
+    if (note || consumo || padrao || concorrente) {
+      STATE[stopId] = {
+        status: status || "Não visitado",
+        consumo: consumo || "",
+        padrao: padrao || "",
+        concorrente: concorrente || "",
+        desconto_concorrente: descConc || "",
+        fidelidade: fidelidade || "",
+        note: note || "",
+        date: "",
+        responsible: CONFIG.sellerName || "Vendedor"
+      };
+    }
+  }
+
+  const finalCity = detectedCity || cityNameInput || "Nova Cidade";
+  STOPS = STOPS.filter(s => (s.cidade || "").toLowerCase() !== finalCity.toLowerCase());
+  STOPS.push(...newStops);
+  saveStops(STOPS);
+  saveState(STATE);
+
+  currentCity = finalCity;
+  localStorage.setItem(LS_SELECTED_CITY, currentCity);
+  closeModal("modalConfig");
+  initApp();
+  showToast(`✓ ${newStops.length} pontos carregados para ${finalCity}!`);
+}
+
+function updateSyncStatusHeader() {
+  const syncText = document.getElementById("syncText");
+  const syncDot = document.getElementById("syncDot");
+  if (CONFIG.apiUrl) {
+    syncDot.className = "sync-dot";
+    syncText.innerText = `Nuvem Ativa (${CONFIG.sellerName || 'Vendedor'})`;
+  } else {
+    syncDot.className = "sync-dot";
+    syncText.innerText = "Modo Local (Configure em ⚙️)";
+  }
+}
+
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.innerText = msg;
+  toast.style.display = "block";
+  setTimeout(() => { toast.style.display = "none"; }, 2500);
+}
+
+function renderMap() {
+  const dayStops = getCityStops().filter(s => (s.day || 1) === currentDay && s.lat && s.lng);
+  if (!map) {
+    map = L.map('map-view').setView([-19.620, -44.040], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    mapLayer = L.layerGroup().addTo(map);
+  }
+
+  mapLayer.clearLayers();
+  if (dayStops.length === 0) return;
+
+  const latlngs = [];
+  dayStops.forEach((stop, idx) => {
+    const data = getStopData(stop.id);
+    const color = STATUS_COLORS[data.status] || "#8a7a72";
+    latlngs.push([stop.lat, stop.lng]);
+
+    const marker = L.circleMarker([stop.lat, stop.lng], {
+      radius: 9, fillColor: color, color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.95
+    });
+    marker.bindPopup(`
+      <b style="color:var(--grad-3);">${idx + 1}. ${stop.name}</b><br>
+      📍 ${stop.address}<br>
+      <b>Status:</b> ${data.status}
+    `);
+    mapLayer.addLayer(marker);
+  });
+
+  if (latlngs.length > 1) {
+    mapLayer.addLayer(L.polyline(latlngs, { color: '#F04E23', weight: 3, dashArray: '5, 8' }));
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
+  } else if (latlngs.length === 1) {
+    map.setView(latlngs[0], 15);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", initApp);
+</script>
+</body>
+</html>
