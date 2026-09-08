@@ -529,6 +529,8 @@ const DEFAULT_STOPS = [
   {id:"pl-10", day:1, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
 ];
 
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxxvqn0H_hYAkwIzge6WvInNbDIGHn2fYhkC3mcLVt48BVnmjX4MSdknKNuauH1JysVfw/exec";
+
 const LS_STOPS_KEY = "radar_b2u_stops_multi_v1";
 const LS_STATE_KEY = "radar_b2u_state_multi_v1";
 const LS_CONFIG_KEY = "radar_b2u_config_multi_v1";
@@ -569,8 +571,12 @@ function saveState(state) {
 function loadConfig() {
   try {
     const raw = localStorage.getItem(LS_CONFIG_KEY);
-    return raw ? JSON.parse(raw) : { apiUrl: "", sellerName: "Gabriel Mattos" };
-  } catch(e) { return { apiUrl: "", sellerName: "Gabriel Mattos" }; }
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      apiUrl: parsed.apiUrl || DEFAULT_API_URL,
+      sellerName: parsed.sellerName || "Gabriel Mattos"
+    };
+  } catch(e) { return { apiUrl: DEFAULT_API_URL, sellerName: "Gabriel Mattos" }; }
 }
 
 function getStopData(id) {
