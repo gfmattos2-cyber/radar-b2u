@@ -4,295 +4,510 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Radar B2U · Prospecção Comercial</title>
+
+<!-- Tipografia Oficial B2U (Manual da Marca): Jost (substituto oficial da Futura), Montserrat e Barlow Condensed -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Jost:wght@500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
+  /* =========================================================
+     DESIGN SYSTEM B2U ENERGIA · MANUAL DA MARCA v1.0 (2026)
+     ========================================================= */
   :root {
-    --grad-1: #FF9A3D;
-    --grad-2: #F04E23;
-    --grad-3: #E8391B;
-    --grad: linear-gradient(135deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
-    --ink: #241a16;
-    --ink-soft: #63534c;
-    --paper: #fffaf6;
-    --card: #ffffff;
-    --line: #f0e2d8;
-    --line-strong: #e4d0c2;
-    --shadow: 0 4px 18px rgba(232, 57, 27, 0.08), 0 1px 3px rgba(36, 26, 22, 0.05);
-    --radius: 16px;
-    --radius-sm: 10px;
+    /* Cores Primárias e Secundárias */
+    --b2u-orange: #ff5e0f;       /* Laranja Solar (Ação, CTAs, Destaque) */
+    --b2u-orange-hover: #e84e08; /* Laranja 600 */
+    --b2u-orange-press: #c03f08; /* Laranja 700 */
+    --b2u-orange-50: #fff4ec;    /* Fundo suave laranja */
+    --b2u-orange-100: #ffe4d1;
+    --b2u-amber: #ffa121;        /* Âmbar secundário */
+    --b2u-amber-50: #fff8ec;
+    
+    /* Neutros Oficiais (Nunca usar preto puro) */
+    --b2u-ink: #363636;          /* Carvão principal para texto */
+    --b2u-ink-soft: #636363;     /* Carvão médio para apoio */
+    --b2u-mist: #f6f6f6;         /* Névoa: fundo do produto */
+    --b2u-card: #ffffff;         /* Superfície dos cards */
+    --b2u-line: #ebebeb;         /* Linhas sutis */
+    --b2u-line-strong: #dedede;
+    
+    /* Cores Funcionais do Manual */
+    --b2u-success: #1e9e6a;
+    --b2u-warning: #ffa121;
+    --b2u-error: #d83a2b;
+    --b2u-info: #2d7ff0;
+
+    /* Gradiente Assinatura (Exatamente 135deg, Laranja Solar ao Âmbar) */
+    --b2u-gradient: linear-gradient(135deg, #ff5e0f 0%, #ffa121 100%);
+    
+    /* Elevações e Raios do Manual */
+    --radius-btn: 12px;
+    --radius-card: 20px;
+    --radius-pill: 999px;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --shadow-glow: 0 4px 18px rgba(255, 94, 15, 0.22);
+    
+    /* Safe Area Mobile */
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
   body {
     margin: 0; padding: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, sans-serif;
-    font-size: 14.5px;
-    line-height: 1.45;
-    padding-bottom: calc(90px + var(--safe-bottom));
-    overscroll-behavior-y: none;
+    background-color: var(--b2u-mist);
+    color: var(--b2u-ink);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding-bottom: calc(88px + var(--safe-bottom));
+    -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; margin: 0; }
-  
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+
+  /* Títulos em Jost (Substituto oficial da Futura) */
+  h1, h2, h3 {
+    font-family: 'Jost', sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--b2u-ink);
+    margin: 0;
     font-weight: 700;
   }
 
-  /* ---------- CABEÇALHO ---------- */
-  header.app {
-    background: var(--grad);
-    color: #fff;
-    padding: 14px 16px 10px;
-    position: sticky; top: 0; z-index: 50;
-    box-shadow: 0 4px 20px rgba(232, 57, 27, 0.28);
+  /* Eyebrows em Barlow Condensed Caixa Alta */
+  .eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    line-height: 1.2;
   }
-  .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .brand { display: flex; align-items: center; gap: 9px; }
-  .brand-mark {
-    width: 32px; height: 32px; border-radius: 9px;
-    background: rgba(255, 255, 255, 0.25);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 16px;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
+
+  /* Ícones SVG Lucide (traço de 1.75px a 2px arredondado) */
+  .icon-svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.85;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: inline-block;
+    vertical-align: middle;
     flex-shrink: 0;
   }
-  .brand-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; line-height: 1; }
-  .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; opacity: 0.9; margin-top: 2px; }
+
+  /* ---------- CABEÇALHO B2U ---------- */
+  header.app-header {
+    background: var(--b2u-gradient);
+    color: #ffffff;
+    padding: 14px 18px 12px;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 4px 20px rgba(255, 94, 15, 0.25);
+  }
+
+  .brand-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+
+  .brand-container {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* Símbolo Squircle B2U com lettermark b2u */
+  .brand-squircle {
+    width: 34px; height: 34px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    border-radius: 10px; /* ~28% do lado */
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Jost', sans-serif;
+    font-weight: 800; font-size: 15px; color: #ffffff;
+    letter-spacing: -0.05em; flex-shrink: 0;
+  }
+
+  .brand-text-wrap { display: flex; flex-direction: column; }
+  .brand-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 17px; font-weight: 700; line-height: 1; color: #ffffff;
+  }
+  .brand-descritor {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.9); margin-top: 2px;
+    text-transform: uppercase;
+  }
 
   .header-actions { display: flex; align-items: center; gap: 6px; }
-  .btn-hdr {
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.35);
-    color: #fff; border-radius: 8px;
-    padding: 6px 10px; font-size: 12px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 4px;
-  }
-  .btn-hdr:active { transform: scale(0.96); background: rgba(255,255,255,0.3); }
 
-  .city-selector-bar {
+  .btn-hdr-action {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    border-radius: var(--radius-btn);
+    padding: 7px 11px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: background 140ms ease-out, transform 140ms ease-out;
+  }
+  .btn-hdr-action:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.28); }
+
+  /* Seletor de Cidades no Cabeçalho */
+  .city-bar {
     display: flex; align-items: center; justify-content: space-between;
-    background: rgba(0,0,0,0.18); border-radius: 10px;
-    padding: 6px 10px; margin-top: 10px; gap: 8px;
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 12px; padding: 6px 12px; margin-top: 10px; gap: 8px;
   }
-  .city-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #fff; }
-  .city-select {
-    background: #fff; color: var(--grad-3); border: none;
-    border-radius: 6px; font-family: 'Poppins', sans-serif;
-    font-size: 12.5px; font-weight: 700; padding: 4px 8px;
-    outline: none; cursor: pointer; max-width: 170px;
+  .city-label-group {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #ffffff;
+  }
+  .city-dropdown {
+    background: #ffffff; color: var(--b2u-orange);
+    border: none; border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12.5px; font-weight: 700;
+    padding: 5px 10px; outline: none; cursor: pointer;
   }
 
-  .sync-indicator {
-    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
-    display: flex; align-items: center; gap: 5px;
-    color: rgba(255,255,255,0.85); margin-top: 6px;
+  /* Indicador de Status da Nuvem */
+  .cloud-status {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 6px;
   }
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
-  .sync-dot.syncing { background: #f1c40f; animation: pulse 1s infinite; }
-  .sync-dot.offline { background: #e74c3c; }
+  .cloud-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #2ecc71; flex-shrink: 0;
+  }
+  .cloud-dot.syncing { background: #f1c40f; animation: pulse 1s infinite; }
+  .cloud-dot.offline { background: #e74c3c; }
 
   @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-  /* ---------- NAVEGAÇÃO ENTRE DIAS E ABAS ---------- */
-  .daybar {
-    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 0;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  /* ---------- NAVEGAÇÃO ENTRE DIAS E VISÕES ---------- */
+  .day-chips-bar {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 10px 18px 0; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .daybar::-webkit-scrollbar { display: none; }
-  .daychip {
-    flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 600; padding: 6px 12px;
-    border-radius: 999px; background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.3); color: #fff;
-    cursor: pointer; transition: all 0.15s; text-align: center;
+  .day-chips-bar::-webkit-scrollbar { display: none; }
+  .day-chip {
+    flex-shrink: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px; border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff; cursor: pointer;
+    transition: background 140ms ease-out, color 140ms ease-out;
   }
-  .daychip.active { background: #fff; color: var(--grad-3); font-weight: 700; border-color: #fff; }
+  .day-chip.active {
+    background: #ffffff; color: var(--b2u-orange);
+    border-color: #ffffff;
+  }
 
-  .viewtabs { display: flex; gap: 6px; padding: 10px 16px 12px; }
-  .viewtab {
-    flex: 1; text-align: center; padding: 8px 0;
-    border-radius: 10px; background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.28); color: #fff;
-    font-weight: 600; font-size: 12.5px; cursor: pointer;
+  .view-tabs-bar {
+    display: flex; gap: 6px; padding: 10px 18px 12px;
   }
-  .viewtab.active { background: #fff; color: var(--grad-3); }
+  .view-tab {
+    flex: 1; text-align: center; padding: 8px 0;
+    border-radius: var(--radius-btn);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600; font-size: 12.5px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background 140ms ease-out, color 140ms ease-out;
+  }
+  .view-tab.active { background: #ffffff; color: var(--b2u-orange); font-weight: 700; }
 
   /* ---------- CONTEÚDO PRINCIPAL ---------- */
-  main { padding: 12px 14px 8px; max-width: 680px; margin: 0 auto; }
-
-  .daymeta {
-    display: flex; justify-content: space-between; align-items: center;
-    margin: 4px 2px 10px;
+  main.main-content {
+    max-width: 680px; margin: 0 auto; padding: 16px 16px 8px;
   }
-  .daymeta .lbl { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; }
-  .daymeta .progress-pill {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft);
-    background: #fff; border: 1px solid var(--line-strong); padding: 4px 9px; border-radius: 999px;
-  }
-  .progress-pill b { color: var(--grad-3); }
 
-  .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search-wrapper { margin-bottom: 12px; }
   .search-input {
-    flex: 1; background: #fff; border: 1px solid var(--line-strong);
-    border-radius: 10px; padding: 8px 12px; font-size: 13.5px;
-    font-family: inherit; color: var(--ink);
+    width: 100%; background: #ffffff;
+    border: 1px solid var(--b2u-line);
+    border-radius: var(--radius-btn);
+    padding: 10px 14px; font-family: 'Montserrat', sans-serif;
+    font-size: 13.5px; color: var(--b2u-ink);
+    box-shadow: var(--shadow-sm); outline: none;
+    transition: border-color 140ms ease-out, box-shadow 140ms ease-out;
   }
-  .search-input:focus { outline: none; border-color: var(--grad-2); }
+  .search-input:focus {
+    border-color: var(--b2u-orange);
+    box-shadow: 0 0 0 4px var(--b2u-orange-50);
+  }
 
-  /* ---------- CARDS DE VISITA ---------- */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 13px 13px 11px;
-    margin-bottom: 10px;
-    position: relative;
+  .meta-info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 6px 4px 12px;
   }
-  .card.done { opacity: 0.88; border-color: #c9bdb4; background: #faf8f6; }
-  
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-  .stopnum {
-    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700;
-    color: #fff; background: var(--grad);
-    width: 24px; height: 24px; border-radius: 7px;
+  .meta-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--b2u-ink);
+  }
+  .progress-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    background: #ffffff; border: 1px solid var(--b2u-line);
+    padding: 4px 12px; border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm); color: var(--b2u-ink-soft);
+  }
+  .progress-tag b { color: var(--b2u-orange); }
+
+  /* ---------- CARDS DE ESTABELECIMENTO (Manual: Raio 20px, Sombra suave) ---------- */
+  .establishment-card {
+    background: var(--b2u-card);
+    border: 1px solid var(--b2u-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-sm);
+    padding: 16px; margin-bottom: 12px;
+    position: relative;
+    transition: box-shadow 220ms ease-out, transform 220ms ease-out;
+  }
+  .establishment-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .establishment-card.visited {
+    background: #fdfdfd;
+    border-color: var(--b2u-line);
+    opacity: 0.94;
+  }
+
+  .card-header-row {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .stop-badge {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: var(--b2u-gradient);
+    color: #ffffff;
+    font-family: 'Jost', sans-serif;
+    font-weight: 700; font-size: 12px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; margin-top: 1px;
   }
-  .card-title-wrap { flex: 1; min-width: 0; }
-  .card-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14.5px; line-height: 1.25; }
-  .card-seg {
-    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.03em;
-    color: var(--grad-3); text-transform: uppercase; font-weight: 700; margin-top: 2px;
+  .card-headings { flex: 1; min-width: 0; }
+  .card-business-name {
+    font-family: 'Jost', sans-serif;
+    font-size: 15.5px; font-weight: 700; line-height: 1.25;
+    color: var(--b2u-ink);
   }
-  
-  .card-addr { font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.35; }
-  .badge-far {
-    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
-    background: #ffe3db; color: var(--grad-3); padding: 2px 6px;
-    border-radius: 4px; font-weight: 600; margin-left: 4px;
+  .card-segment-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--b2u-orange);
+    margin-top: 3px;
   }
 
-  .card-quick-actions { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .card-address-text {
+    font-size: 12.5px; color: var(--b2u-ink-soft);
+    margin-top: 8px; line-height: 1.4;
+  }
+  .badge-distance {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em;
+    background: var(--b2u-orange-50); color: var(--b2u-orange-press);
+    padding: 2px 7px; border-radius: 4px; margin-left: 4px;
+  }
+
+  /* Tag de Concorrência */
+  .competitor-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #e0f7fa; color: #006064;
+    padding: 4px 10px; border-radius: var(--radius-pill);
+    font-size: 11.5px; font-weight: 600; margin-top: 8px;
+  }
+
+  /* Ações Rápidas (Sem emojis, botões com altura 36px e raio 12px) */
+  .quick-actions-bar {
+    display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;
+  }
   .btn-action {
-    font-size: 11px; font-weight: 600; padding: 5px 9px;
-    border-radius: 8px; border: 1px solid var(--line-strong);
-    background: #fff; color: var(--ink); cursor: pointer;
-    text-decoration: none; display: flex; align-items: center; gap: 4px;
+    height: 36px; padding: 0 12px;
+    border-radius: var(--radius-btn);
+    border: 1px solid var(--b2u-line-strong);
+    background: #ffffff; color: var(--b2u-ink);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 140ms ease-out;
   }
-  .btn-action.primary { background: #fff0e8; border-color: var(--grad-1); color: var(--grad-3); }
-
-  .status-row {
-    margin-top: 10px; padding-top: 9px;
-    border-top: 1px dashed var(--line);
-    display: flex; flex-direction: column; gap: 6px;
+  .btn-action:active { transform: scale(0.98); }
+  .btn-action.btn-maps {
+    background: var(--b2u-orange-50);
+    border-color: var(--b2u-orange-100);
+    color: var(--b2u-orange);
   }
-  .status-select-wrap { display: flex; align-items: center; gap: 8px; }
-  .status-select {
-    flex: 1; padding: 7px 10px; border-radius: 8px;
-    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12.5px;
-    border: 1.5px solid transparent; cursor: pointer;
-    color: #fff; outline: none;
-  }
-  .status-date { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-soft); }
-
-  .note-box {
-    margin-top: 6px; font-size: 12px;
-    background: #fdfbf9; border: 1px solid var(--line);
-    border-radius: 8px; padding: 6px 9px; color: var(--ink);
-    cursor: pointer;
-  }
-  .note-box.empty { color: #9c8a82; font-style: italic; }
-  .note-box.has-text { font-weight: 500; color: #3d2f28; }
-
-  .conc-preview {
-    margin-top: 5px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
-    background: #e0f7fa; color: #006064; padding: 3px 7px; border-radius: 6px;
-    display: inline-block;
+  .btn-action.btn-maps:hover {
+    background: var(--b2u-orange); color: #ffffff;
   }
 
-  /* ---------- MAPA ---------- */
-  #map-view { display: none; height: calc(100vh - 240px); width: 100%; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  /* Bloco de Status e Observações */
+  .card-footer-block {
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px dashed var(--b2u-line);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .status-select-container { display: flex; align-items: center; gap: 8px; }
+  .status-dropdown {
+    flex: 1; height: 38px; padding: 0 12px;
+    border-radius: var(--radius-btn);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600; font-size: 12.5px;
+    border: none; cursor: pointer; color: #ffffff; outline: none;
+  }
+  .status-date-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 600; color: var(--b2u-ink-soft);
+  }
 
-  /* ---------- MODAIS ---------- */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  .notes-preview-box {
+    font-size: 12.5px; background: var(--b2u-mist);
+    border: 1px solid var(--b2u-line);
+    border-radius: 10px; padding: 8px 12px;
+    color: var(--b2u-ink); cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .notes-preview-box.empty { color: #8c8c8c; font-style: italic; }
+
+  /* ---------- MAPA LEAFLET ---------- */
+  #map-view {
+    display: none; height: calc(100vh - 250px); width: 100%;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--b2u-line);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ---------- MODAIS / BOTTOM SHEET ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(54, 54, 54, 0.6);
     z-index: 100; display: none; align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(2px);
   }
-  .modal-sheet {
-    background: #fff; width: 100%; max-width: 600px;
-    border-radius: 20px 20px 0 0; max-height: 90vh;
-    overflow-y: auto; padding: 18px 18px 24px;
-    animation: slideUp 0.25s ease-out;
+  .modal-card {
+    background: #ffffff; width: 100%; max-width: 600px;
+    border-radius: 24px 24px 0 0; max-height: 90vh;
+    overflow-y: auto; padding: 22px 20px 28px;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+    animation: modalSlideUp 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes modalSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-  .modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .modal-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: var(--ink); }
-  .btn-close { background: #eee; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; }
-
-  .form-group { margin-bottom: 12px; }
-  .form-label { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 4px; display: block; }
-  .form-input, .form-textarea, .form-select {
-    width: 100%; padding: 9px 12px; border: 1px solid var(--line-strong);
-    border-radius: 8px; font-size: 13.5px; font-family: inherit;
+  .modal-top-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
   }
-  .form-row-2 { display: flex; gap: 8px; }
-
-  .btn-submit {
-    background: var(--grad); color: #fff; border: none;
-    border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;
-    width: 100%; cursor: pointer; margin-top: 10px;
+  .modal-heading {
+    font-family: 'Jost', sans-serif;
+    font-size: 17px; font-weight: 700; color: var(--b2u-ink);
+  }
+  .btn-modal-close {
+    background: var(--b2u-mist); border: none; border-radius: 50%;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--b2u-ink); font-weight: 700;
   }
 
-  .toast {
+  .form-field-group { margin-bottom: 12px; }
+  .form-field-label {
+    font-size: 12px; font-weight: 600; color: var(--b2u-ink); margin-bottom: 5px; display: block;
+  }
+  .form-text-input, .form-select-input, .form-textarea-input {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid var(--b2u-line-strong);
+    border-radius: var(--radius-btn);
+    font-family: 'Montserrat', sans-serif; font-size: 13.5px;
+    color: var(--b2u-ink); outline: none;
+    transition: border-color 140ms ease-out, box-shadow 140ms ease-out;
+  }
+  .form-text-input:focus, .form-select-input:focus, .form-textarea-input:focus {
+    border-color: var(--b2u-orange);
+    box-shadow: 0 0 0 4px var(--b2u-orange-50);
+  }
+  .form-grid-2 { display: flex; gap: 10px; }
+
+  /* Botão Primário B2U (Manual: Altura 44px, Montserrat 700, Sentence case) */
+  .btn-primary-b2u {
+    height: 44px; width: 100%;
+    background: var(--b2u-orange);
+    color: #ffffff; border: none;
+    border-radius: var(--radius-btn);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 14px; box-shadow: var(--shadow-glow);
+    transition: background 220ms ease-out, transform 220ms ease-out;
+  }
+  .btn-primary-b2u:hover { background: var(--b2u-orange-hover); }
+  .btn-primary-b2u:active { transform: scale(0.98); background: var(--b2u-orange-press); }
+
+  /* Toast Notificação */
+  .toast-notification {
     position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
-    background: #241a16; color: #fff; padding: 8px 16px; border-radius: 999px;
-    font-size: 12px; font-weight: 600; z-index: 200; display: none;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    background: var(--b2u-ink); color: #ffffff;
+    padding: 9px 18px; border-radius: var(--radius-pill);
+    font-family: 'Montserrat', sans-serif; font-size: 12.5px; font-weight: 600;
+    z-index: 200; display: none; box-shadow: var(--shadow-md);
   }
 
-  .fab-add {
-    position: fixed; right: 18px; bottom: calc(24px + var(--safe-bottom));
-    background: var(--grad); color: #fff; width: 54px; height: 54px;
-    border-radius: 50%; border: none; box-shadow: 0 6px 20px rgba(232, 57, 27, 0.4);
+  /* Botão Flutuante Adicionar Ponto (FAB) */
+  .floating-add-btn {
+    position: fixed; right: 20px; bottom: calc(24px + var(--safe-bottom));
+    background: var(--b2u-gradient); color: #ffffff;
+    width: 52px; height: 52px; border-radius: 50%; border: none;
+    box-shadow: var(--shadow-glow);
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: bold; cursor: pointer; z-index: 45;
+    cursor: pointer; z-index: 45;
+    transition: transform 220ms ease-out;
   }
+  .floating-add-btn:active { transform: scale(0.95); }
 </style>
 </head>
 
 <body>
 
-<header class="app">
-  <div class="brandrow">
-    <div class="brand">
-      <div class="brand-mark">B</div>
-      <div>
-        <div class="brand-name">RADAR B2U</div>
-        <div class="brand-sub">PROSPECÇÃO COMERCIAL</div>
+<!-- CABEÇALHO OFICIAL B2U -->
+<header class="app-header">
+  <div class="brand-bar">
+    <div class="brand-container">
+      <div class="brand-squircle">b2u</div>
+      <div class="brand-text-wrap">
+        <span class="brand-title">B2U Energia</span>
+        <span class="brand-descritor">Radar de Prospecção</span>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-hdr" onclick="fetchDataFromSheet()" title="Recarregar dados da planilha">🔄 Atualizar</button>
-      <button class="btn-hdr" onclick="openConfigModal()">⚙️ Planilha</button>
+      <button class="btn-hdr-action" onclick="fetchDataFromSheet()" title="Recarregar dados da nuvem">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+        Atualizar
+      </button>
+      <button class="btn-hdr-action" onclick="openConfigModal()" title="Configurações">
+        <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Ajustes
+      </button>
     </div>
   </div>
 
-  <div class="city-selector-bar">
-    <div class="city-label">🏙️ Cidade:</div>
-    <select class="city-select" id="citySelect" onchange="changeCity(this.value)">
+  <!-- SELETOR DE CIDADES -->
+  <div class="city-bar">
+    <div class="city-label-group">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M19 21v-4"/><path d="M19 17a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"/><path d="M9 10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5H9z"/></svg>
+      Cidade:
+    </div>
+    <select class="city-dropdown" id="citySelect" onchange="changeCity(this.value)">
       <option value="Pedro Leopoldo">Pedro Leopoldo</option>
       <option value="Matozinhos">Matozinhos</option>
       <option value="Lagoa Santa">Lagoa Santa</option>
@@ -306,68 +521,85 @@
     </select>
   </div>
 
-  <div class="sync-indicator" id="syncStatus">
-    <div class="sync-dot" id="syncDot"></div>
-    <span id="syncText">Pronto</span>
+  <div class="cloud-status" id="cloudStatus">
+    <div class="cloud-dot" id="cloudDot"></div>
+    <span id="cloudText">Nuvem ativa</span>
   </div>
 
-  <div class="daybar" id="dayBar"></div>
+  <!-- SELETOR DE DIAS -->
+  <div class="day-chips-bar" id="dayBar"></div>
 
-  <div class="viewtabs">
-    <div class="viewtab active" id="tabRota" onclick="switchView('rota')">🧭 Rota do Dia</div>
-    <div class="viewtab" id="tabMapa" onclick="switchView('mapa')">🗺️ Mapa Interativo</div>
+  <!-- ABAS DE NAVEGAÇÃO -->
+  <div class="view-tabs-bar">
+    <div class="view-tab active" id="tabRota" onclick="switchView('rota')">
+      <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      Rota de visitas
+    </div>
+    <div class="view-tab" id="tabMapa" onclick="switchView('mapa')">
+      <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      Mapa interativo
+    </div>
   </div>
 </header>
 
-<main>
-  <div class="search-box" id="searchWrap">
-    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por nome, rua ou segmento..." oninput="handleSearch()">
+<!-- CORPO PRINCIPAL -->
+<main class="main-content">
+  <div class="search-wrapper" id="searchWrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="Buscar estabelecimento, rua ou segmento..." oninput="handleSearch()">
   </div>
 
-  <div class="daymeta" id="dayMetaWrap">
-    <div class="lbl" id="dayLabel">Dia 1</div>
-    <div class="progress-pill" id="dayProgress">Visitados: <b>0/0</b></div>
+  <div class="meta-info-row" id="dayMetaWrap">
+    <div class="meta-title" id="dayLabel">Dia 1</div>
+    <div class="progress-tag" id="dayProgress">Visitados: <b>0/0</b></div>
   </div>
 
+  <!-- LISTA DE CARDS -->
   <div id="cardsWrap"></div>
+
+  <!-- MAPA LEAFLET -->
   <div id="map-view"></div>
 </main>
 
-<button class="fab-add" onclick="openAddModal()" title="Adicionar Ponto na Rota">+</button>
-<div class="toast" id="toast">Ação concluída!</div>
+<!-- BOTÃO FLUTUANTE ADICIONAR PONTO -->
+<button class="floating-add-btn" onclick="openAddModal()" title="Adicionar ponto na rota">
+  <svg class="icon-svg" style="width:24px; height:24px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
 
-<!-- MODAIS -->
-<div class="modal-overlay" id="modalQualify">
-  <div class="modal-sheet">
-    <div class="modal-hdr">
-      <div class="modal-title" id="qualifyTitle">Qualificar Estabelecimento</div>
-      <button class="btn-close" onclick="closeModal('modalQualify')">✕</button>
+<!-- TOAST -->
+<div class="toast-notification" id="toast">Ação concluída</div>
+
+<!-- MODAL: QUALIFICAÇÃO & CONCORRÊNCIA -->
+<div class="modal-backdrop" id="modalQualify">
+  <div class="modal-card">
+    <div class="modal-top-bar">
+      <div class="modal-heading" id="qualifyTitle">Qualificar estabelecimento</div>
+      <button class="btn-modal-close" onclick="closeModal('modalQualify')">✕</button>
     </div>
     
-    <div class="form-group">
-      <label class="form-label">Nome do Contato / Decisor</label>
-      <input type="text" class="form-input" id="q_contact" placeholder="Ex: Carlos (Proprietário)">
+    <div class="form-field-group">
+      <label class="form-field-label">Nome do contato ou decisor</label>
+      <input type="text" class="form-text-input" id="q_contact" placeholder="Ex: Carlos (Proprietário)">
     </div>
 
-    <div class="form-row-2">
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Telefone / WhatsApp</label>
-        <input type="text" class="form-input" id="q_phone" placeholder="(31) 99999-9999">
+    <div class="form-grid-2">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Telefone ou WhatsApp</label>
+        <input type="text" class="form-text-input" id="q_phone" placeholder="(31) 99999-9999">
       </div>
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">E-mail</label>
-        <input type="email" class="form-input" id="q_email" placeholder="contato@empresa.com">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">E-mail</label>
+        <input type="email" class="form-text-input" id="q_email" placeholder="contato@empresa.com">
       </div>
     </div>
 
-    <div class="form-row-2">
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Consumo Médio</label>
-        <input type="text" class="form-input" id="q_consumo" placeholder="Ex: R$ 3.500 ou 4.000 kWh">
+    <div class="form-grid-2">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Consumo médio mensal</label>
+        <input type="text" class="form-text-input" id="q_consumo" placeholder="Ex: R$ 3.500 ou 4.000 kWh">
       </div>
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Padrão Elétrico</label>
-        <select class="form-select" id="q_padrao">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Padrão elétrico</label>
+        <select class="form-select-input" id="q_padrao">
           <option value="">Selecione...</option>
           <option value="Monofásico">Monofásico (30 kWh disp.)</option>
           <option value="Bifásico">Bifásico (50 kWh disp.)</option>
@@ -376,137 +608,144 @@
       </div>
     </div>
 
-    <div style="background: #f0fbfc; border: 1px solid #b2ebf2; border-radius: 10px; padding: 10px; margin-bottom: 12px;">
-      <div class="eyebrow" style="color: #00838f; margin-bottom: 6px;">Inteligência de Concorrência</div>
-      <div class="form-group">
-        <label class="form-label">Concorrente Atual (se houver)</label>
-        <input type="text" class="form-input" id="q_concorrente" placeholder="Ex: Órigo, Ultragaz, EDP, CEMIG SIM">
+    <!-- BLOCO DE INTELIGÊNCIA CONCORRENCIAL -->
+    <div style="background: var(--b2u-mist); border: 1px solid var(--b2u-line); border-radius: 14px; padding: 12px; margin-bottom: 12px;">
+      <div class="eyebrow" style="color: var(--b2u-orange); margin-bottom: 8px;">Inteligência de concorrência</div>
+      <div class="form-field-group">
+        <label class="form-field-label">Concorrente atual (se houver)</label>
+        <input type="text" class="form-text-input" id="q_concorrente" placeholder="Ex: Órigo, Ultragaz, EDP, CEMIG SIM">
       </div>
-      <div class="form-row-2">
-        <div class="form-group" style="flex:1;">
-          <label class="form-label">Desconto Atual (%)</label>
-          <input type="text" class="form-input" id="q_desconto_concorrente" placeholder="Ex: 15%">
+      <div class="form-grid-2">
+        <div class="form-field-group" style="flex:1;">
+          <label class="form-field-label">Desconto atual (%)</label>
+          <input type="text" class="form-text-input" id="q_desconto_concorrente" placeholder="Ex: 15%">
         </div>
-        <div class="form-group" style="flex:1;">
-          <label class="form-label">Fidelidade / Fim do Contrato</label>
-          <input type="text" class="form-input" id="q_fidelidade" placeholder="Ex: Até Dez/2026 ou Sem fidelidade">
+        <div class="form-field-group" style="flex:1;">
+          <label class="form-field-label">Fidelidade ou fim de contrato</label>
+          <input type="text" class="form-text-input" id="q_fidelidade" placeholder="Ex: Até Dez/2026">
         </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Observações da Visita</label>
-      <textarea class="form-textarea" id="q_note" rows="3" placeholder="Detalhes da conversa, melhor horário para retorno, objeções..."></textarea>
+    <div class="form-field-group">
+      <label class="form-field-label">Observações da visita</label>
+      <textarea class="form-textarea-input" id="q_note" rows="3" placeholder="Detalhes da conversa, horário de retorno, objeções..."></textarea>
     </div>
 
-    <button class="btn-submit" onclick="saveQualifyData()">Salvar e Sincronizar</button>
+    <button class="btn-primary-b2u" onclick="saveQualifyData()">Salvar e sincronizar</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalAdd">
-  <div class="modal-sheet">
-    <div class="modal-hdr">
-      <div class="modal-title">+ Adicionar Ponto na Rota</div>
-      <button class="btn-close" onclick="closeModal('modalAdd')">✕</button>
+<!-- MODAL: ADICIONAR NOVO PONTO -->
+<div class="modal-backdrop" id="modalAdd">
+  <div class="modal-card">
+    <div class="modal-top-bar">
+      <div class="modal-heading">+ Adicionar ponto na rota</div>
+      <button class="btn-modal-close" onclick="closeModal('modalAdd')">✕</button>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Cidade *</label>
-      <input type="text" class="form-input" id="add_city" readonly>
+    <div class="form-field-group">
+      <label class="form-field-label">Cidade</label>
+      <input type="text" class="form-text-input" id="add_city" readonly>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Nome do Estabelecimento *</label>
-      <input type="text" class="form-input" id="add_name" placeholder="Ex: Panificadora Central">
+    <div class="form-field-group">
+      <label class="form-field-label">Nome do estabelecimento *</label>
+      <input type="text" class="form-text-input" id="add_name" placeholder="Ex: Panificadora Central">
     </div>
 
-    <div class="form-row-2">
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Segmento *</label>
-        <input type="text" class="form-input" id="add_segment" placeholder="Ex: Padaria, Restaurante">
+    <div class="form-grid-2">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Segmento *</label>
+        <input type="text" class="form-text-input" id="add_segment" placeholder="Ex: Padaria, Restaurante">
       </div>
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Dia da Rota *</label>
-        <select class="form-select" id="add_day"></select>
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Dia da rota *</label>
+        <select class="form-select-input" id="add_day"></select>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Endereço Completo *</label>
-      <input type="text" class="form-input" id="add_address" placeholder="Rua, número, bairro">
+    <div class="form-field-group">
+      <label class="form-field-label">Endereço completo *</label>
+      <input type="text" class="form-text-input" id="add_address" placeholder="Rua, número, bairro">
     </div>
 
-    <button type="button" class="btn-action" style="width: 100%; justify-content: center; margin-bottom: 12px;" onclick="fetchCurrentGPS()">
-      📍 Usar Minha Localização GPS Atual
+    <button type="button" class="btn-action" style="width:100%; justify-content:center; margin-bottom:12px; height:40px;" onclick="fetchCurrentGPS()">
+      <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Usar minha localização GPS atual
     </button>
 
-    <div class="form-row-2">
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Bairro</label>
-        <input type="text" class="form-input" id="add_bairro" placeholder="Ex: Centro">
+    <div class="form-grid-2">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Bairro</label>
+        <input type="text" class="form-text-input" id="add_bairro" placeholder="Ex: Centro">
       </div>
-      <div class="form-group" style="flex:1;">
-        <label class="form-label">Telefone</label>
-        <input type="text" class="form-input" id="add_phone" placeholder="(31) 99999-9999">
+      <div class="form-field-group" style="flex:1;">
+        <label class="form-field-label">Telefone</label>
+        <input type="text" class="form-text-input" id="add_phone" placeholder="(31) 99999-9999">
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Observações Iniciais</label>
-      <textarea class="form-textarea" id="add_note" rows="2" placeholder="Ex: Vizinho ao ponto visitado..."></textarea>
+    <div class="form-field-group">
+      <label class="form-field-label">Observações iniciais</label>
+      <textarea class="form-textarea-input" id="add_note" rows="2" placeholder="Ex: Vizinho ao ponto visitado..."></textarea>
     </div>
 
-    <button class="btn-submit" onclick="saveNewEstablishment()">Adicionar e Sincronizar</button>
+    <button class="btn-primary-b2u" onclick="saveNewEstablishment()">Adicionar e sincronizar</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalConfig">
-  <div class="modal-sheet">
-    <div class="modal-hdr">
-      <div class="modal-title">Configurações & Cidades</div>
-      <button class="btn-close" onclick="closeModal('modalConfig')">✕</button>
+<!-- MODAL: AJUSTES E CONFIGURAÇÃO -->
+<div class="modal-backdrop" id="modalConfig">
+  <div class="modal-card">
+    <div class="modal-top-bar">
+      <div class="modal-heading">Ajustes e integração</div>
+      <button class="btn-modal-close" onclick="closeModal('modalConfig')">✕</button>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">URL do Webhook / API da Planilha</label>
-      <input type="text" class="form-input" id="cfg_apiUrl" placeholder="https://...">
+    <div class="form-field-group">
+      <label class="form-field-label">URL do Google Apps Script (API Web)</label>
+      <input type="text" class="form-text-input" id="cfg_apiUrl">
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Nome do Vendedor / Responsável</label>
-      <input type="text" class="form-input" id="cfg_seller" placeholder="Ex: Gabriel Mattos ou Vendedor 1">
+    <div class="form-field-group">
+      <label class="form-field-label">Nome do vendedor ou responsável</label>
+      <input type="text" class="form-text-input" id="cfg_seller" placeholder="Ex: Gabriel Mattos">
     </div>
 
-    <button class="btn-submit" onclick="saveConfig()">Salvar Configuração</button>
+    <button class="btn-primary-b2u" onclick="saveConfig()">Salvar ajustes</button>
 
-    <hr style="border:0; border-top:1px solid var(--line); margin:16px 0;">
+    <hr style="border:0; border-top:1px solid var(--b2u-line); margin:18px 0;">
 
-    <div class="eyebrow" style="color:var(--grad-3); margin-bottom:6px;">Importar Nova Cidade (TSV do Gemini/Maps)</div>
-    <div class="form-group">
-      <label class="form-label">Nome da Cidade</label>
-      <input type="text" class="form-input" id="cfg_importCityName" placeholder="Ex: Matozinhos">
+    <div class="eyebrow" style="color:var(--b2u-orange); margin-bottom:8px;">Importar nova cidade (TSV do Gemini)</div>
+    <div class="form-field-group">
+      <label class="form-field-label">Nome da cidade</label>
+      <input type="text" class="form-text-input" id="cfg_importCityName" placeholder="Ex: Matozinhos">
     </div>
-    <div class="form-group">
-      <textarea class="form-textarea" id="cfg_tsvImport" rows="3" placeholder="Cole aqui a tabela TSV da cidade..."></textarea>
+    <div class="form-field-group">
+      <textarea class="form-textarea-input" id="cfg_tsvImport" rows="3" placeholder="Cole aqui a tabela gerada pelo Maps..."></textarea>
     </div>
-    <button class="btn-action primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="importTSVForCity()">
-      📥 Adicionar Cidade & Rotas ao App
+    <button class="btn-action" style="width:100%; justify-content:center; height:42px; border-color:var(--b2u-orange); color:var(--b2u-orange);" onclick="importTSVForCity()">
+      Adicionar cidade e rotas
     </button>
   </div>
 </div>
 
 <script>
+/* =========================================================
+   PALETA E STATUS CONFORME MANUAL DA MARCA B2U
+   ========================================================= */
 const STATUS_COLORS = {
-  "Não visitado": "#8a7a72",
-  "Sem decisor no local": "#e8b04b",
-  "Não elegível": "#5b4a43",
-  "Recusou": "#c0392b",
-  "Retornar depois": "#e8891a",
-  "Interessado - aguardando fatura": "#2980b9",
+  "Não visitado": "#636363",
+  "Sem decisor no local": "#ffa121",
+  "Não elegível": "#363636",
+  "Recusou": "#d83a2b",
+  "Retornar depois": "#ff5e0f",
+  "Interessado - aguardando fatura": "#2d7ff0",
   "Proposta apresentada": "#8e44ad",
-  "Em negociação": "#F04E23",
-  "Fechado": "#27ae60",
-  "Termo assinado": "#1b5e20",
+  "Em negociação": "#ff5e0f",
+  "Fechado": "#1e9e6a",
+  "Termo assinado": "#13724b",
   "Já com desconto": "#00838f"
 };
 const STATUS_LIST = Object.keys(STATUS_COLORS);
@@ -529,6 +768,7 @@ const DEFAULT_STOPS = [
   {id:"pl-10", day:1, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
 ];
 
+// URL do Google Apps Script configurada pelo usuário
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxxvqn0H_hYAkwIzge6WvInNbDIGHn2fYhkC3mcLVt48BVnmjX4MSdknKNuauH1JysVfw/exec";
 
 const LS_STOPS_KEY = "radar_b2u_stops_multi_v1";
@@ -595,7 +835,7 @@ function getStopData(id) {
     desconto_concorrente: "",
     fidelidade: "",
     cidade: base.cidade || currentCity,
-    responsible: CONFIG.sellerName || "Vendedor"
+    responsible: CONFIG.sellerName || "Gabriel Mattos"
   }, base, dyn);
 }
 
@@ -638,7 +878,7 @@ function renderDayBar() {
   if (!days.includes(currentDay)) currentDay = days[0];
 
   dayBar.innerHTML = days.map(d => `
-    <div class="daychip ${d === currentDay ? 'active' : ''}" onclick="selectDay(${d})">Dia ${d}</div>
+    <div class="day-chip ${d === currentDay ? 'active' : ''}" onclick="selectDay(${d})">Dia ${d}</div>
   `).join("");
 }
 
@@ -651,12 +891,12 @@ function selectDay(d) {
 
 function switchView(view) {
   currentView = view;
-  document.getElementById("tabRota").className = `viewtab ${view === 'rota' ? 'active' : ''}`;
-  document.getElementById("tabMapa").className = `viewtab ${view === 'mapa' ? 'active' : ''}`;
+  document.getElementById("tabRota").className = `view-tab ${view === 'rota' ? 'active' : ''}`;
+  document.getElementById("tabMapa").className = `view-tab ${view === 'mapa' ? 'active' : ''}`;
 
   if (view === "rota") {
     document.getElementById("cardsWrap").style.display = "block";
-    document.getElementById("searchWrap").style.display = "flex";
+    document.getElementById("searchWrap").style.display = "block";
     document.getElementById("dayMetaWrap").style.display = "flex";
     document.getElementById("map-view").style.display = "none";
   } else {
@@ -696,16 +936,16 @@ function renderCards() {
   document.getElementById("dayProgress").innerHTML = `Visitados: <b>${visited}/${total}</b>`;
 
   if (dayStops.length === 0) {
-    wrap.innerHTML = `<div style="text-align:center; padding:35px 20px; color:#888;">
+    wrap.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--b2u-ink-soft);">
       Nenhum estabelecimento cadastrado para <b>${currentCity} (Dia ${currentDay})</b>.<br>
-      <small>Toque em <b>+</b> para cadastrar ou importe a rota nas configurações ⚙️.</small>
+      <small style="margin-top:6px; display:inline-block;">Toque no botão <b>+</b> para cadastrar um estabelecimento ou importe novos dados em Ajustes.</small>
     </div>`;
     return;
   }
 
   wrap.innerHTML = dayStops.map((stop, index) => {
     const data = getStopData(stop.id);
-    const statusColor = STATUS_COLORS[data.status] || "#8a7a72";
+    const statusColor = STATUS_COLORS[data.status] || "#636363";
     const isDone = data.status !== "Não visitado";
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
     const wazeUrl = stop.lat && stop.lng ? `https://waze.com/ul?ll=${stop.lat},${stop.lng}&navigate=yes` : `https://waze.com/ul?q=${encodeURIComponent(stop.address + ' ' + currentCity)}`;
@@ -713,44 +953,67 @@ function renderCards() {
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
 
     return `
-      <div class="card ${isDone ? 'done' : ''}" id="card-${stop.id}">
-        <div class="card-top">
-          <div class="stopnum">${index + 1}</div>
-          <div class="card-title-wrap">
-            <div class="card-name">${stop.name}</div>
-            <div class="card-seg">${stop.segment || 'Comércio'}</div>
+      <div class="establishment-card ${isDone ? 'visited' : ''}" id="card-${stop.id}">
+        <div class="card-header-row">
+          <div class="stop-badge">${index + 1}</div>
+          <div class="card-headings">
+            <div class="card-business-name">${stop.name}</div>
+            <div class="card-segment-tag">${stop.segment || 'Comércio'}</div>
           </div>
         </div>
 
-        <div class="card-addr">
-          📍 ${stop.address}
-          ${stop.far ? `<span class="badge-far">${stop.bairro}</span>` : (stop.bairro ? ` • <b>${stop.bairro}</b>` : '')}
+        <div class="card-address-text">
+          ${stop.address}
+          ${stop.far ? `<span class="badge-distance">${stop.bairro}</span>` : (stop.bairro ? ` · <b>${stop.bairro}</b>` : '')}
         </div>
 
         ${data.concorrente ? `
-          <div class="conc-preview">
-            ⚡ Concorrente: <b>${data.concorrente}</b> ${data.desconto_concorrente ? `(${data.desconto_concorrente})` : ''}
+          <div class="competitor-pill">
+            <svg class="icon-svg" style="width:13px;height:13px;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Concorrente: <b>${data.concorrente}</b> ${data.desconto_concorrente ? `(${data.desconto_concorrente})` : ''}
           </div>
         ` : ''}
 
-        <div class="card-quick-actions">
-          <a href="${mapsUrl}" target="_blank" class="btn-action primary">🗺️ Maps</a>
-          <a href="${wazeUrl}" target="_blank" class="btn-action">🚗 Waze</a>
-          ${data.phone ? `<a href="tel:${data.phone}" class="btn-action">📞 Ligar</a>` : ''}
-          ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn-action">💬 WhatsApp</a>` : ''}
-          <button class="btn-action" onclick="openQualifyModal('${stop.id}')">✏️ Qualificar</button>
+        <!-- Ações Rápidas -->
+        <div class="quick-actions-bar">
+          <a href="${mapsUrl}" target="_blank" class="btn-action btn-maps">
+            <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+            Maps
+          </a>
+          <a href="${wazeUrl}" target="_blank" class="btn-action">
+            <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="m12 16 4-4-4-4"/></svg>
+            Waze
+          </a>
+          ${data.phone ? `
+            <a href="tel:${data.phone}" class="btn-action">
+              <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Ligar
+            </a>
+          ` : ''}
+          ${waUrl ? `
+            <a href="${waUrl}" target="_blank" class="btn-action">
+              <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              WhatsApp
+            </a>
+          ` : ''}
+          <button class="btn-action" onclick="openQualifyModal('${stop.id}')">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Qualificar
+          </button>
         </div>
 
-        <div class="status-row">
-          <div class="status-select-wrap">
-            <select class="status-select" style="background:${statusColor};" onchange="updateStopStatus('${stop.id}', this.value)">
+        <!-- Seletor de Status e Nota -->
+        <div class="card-footer-block">
+          <div class="status-select-container">
+            <select class="status-dropdown" style="background:${statusColor};" onchange="updateStopStatus('${stop.id}', this.value)">
               ${STATUS_LIST.map(st => `<option value="${st}" ${st === data.status ? 'selected' : ''}>${st}</option>`).join("")}
             </select>
-            ${data.date ? `<span class="status-date">🕒 ${data.date.split(' ')[0]}</span>` : ''}
+            ${data.date ? `<span class="status-date-label">${data.date.split(' ')[0]}</span>` : ''}
           </div>
 
-          <div class="note-box ${data.note ? 'has-text' : 'empty'}" onclick="openQualifyModal('${stop.id}')">
-            ${data.note ? `📝 ${data.note}` : '+ Adicionar notas da visita...'}
+          <div class="notes-preview-box ${data.note ? '' : 'empty'}" onclick="openQualifyModal('${stop.id}')">
+            <svg class="icon-svg" style="width:14px;height:14px;color:var(--b2u-ink-soft);" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>${data.note ? data.note : 'Adicionar notas da visita...'}</span>
           </div>
         </div>
       </div>
@@ -758,18 +1021,21 @@ function renderCards() {
   }).join("");
 }
 
+/* =========================================================
+   SINCRONIZAÇÃO EM NUVEM
+   ========================================================= */
 async function syncItemToSheets(itemData) {
-  const syncDot = document.getElementById("syncDot");
-  const syncText = document.getElementById("syncText");
+  const cloudDot = document.getElementById("cloudDot");
+  const cloudText = document.getElementById("cloudText");
 
   if (!CONFIG.apiUrl) {
-    syncDot.className = "sync-dot";
-    syncText.innerText = "Salvo localmente";
+    cloudDot.className = "cloud-dot";
+    cloudText.innerText = "Salvo localmente";
     return;
   }
 
-  syncDot.className = "sync-dot syncing";
-  syncText.innerText = "Sincronizando com nuvem...";
+  cloudDot.className = "cloud-dot syncing";
+  cloudText.innerText = "Sincronizando com a planilha...";
 
   try {
     const payload = { action: "update_or_insert", data: itemData };
@@ -779,21 +1045,21 @@ async function syncItemToSheets(itemData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    syncDot.className = "sync-dot";
-    syncText.innerText = "Sincronizado na nuvem";
-    showToast("✓ Sincronizado na planilha!");
+    cloudDot.className = "cloud-dot";
+    cloudText.innerText = "Nuvem ativa";
+    showToast("Atualizado na planilha");
   } catch (err) {
-    syncDot.className = "sync-dot offline";
-    syncText.innerText = "Offline (salvo no celular)";
+    cloudDot.className = "cloud-dot offline";
+    cloudText.innerText = "Offline (salvo no aparelho)";
   }
 }
 
 async function fetchDataFromSheet() {
   if (!CONFIG.apiUrl) {
-    alert("Configure a URL do Webhook em ⚙️ Planilha primeiro.");
+    alert("URL do script não configurada.");
     return;
   }
-  showToast("🔄 Puxando dados da nuvem...");
+  showToast("Buscando dados da planilha...");
   try {
     const res = await fetch(CONFIG.apiUrl);
     const json = await res.json();
@@ -802,9 +1068,9 @@ async function fetchDataFromSheet() {
       populateCityDropdown();
       renderDayBar();
       renderCards();
-      showToast(`✓ ${json.rows.length} registros carregados!`);
+      showToast(`${json.rows.length} registros atualizados!`);
     } else {
-      showToast("Planilha vazia ou sem novos dados.");
+      showToast("Planilha vazia ou sem novos dados");
     }
   } catch(e) {
     alert("Erro ao sincronizar dados: " + e.message);
@@ -818,7 +1084,7 @@ function updateStopStatus(id, newStatus) {
   if (!STATE[id]) STATE[id] = {};
   STATE[id].status = newStatus;
   STATE[id].date = dateStr;
-  STATE[id].responsible = CONFIG.sellerName || "Vendedor";
+  STATE[id].responsible = CONFIG.sellerName || "Gabriel Mattos";
   saveState(STATE);
 
   renderCards();
@@ -876,7 +1142,7 @@ function openAddModal() {
   const sel = document.getElementById("add_day");
   const days = getDaysList();
   sel.innerHTML = days.map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>Dia ${d}</option>`).join("") +
-                  `<option value="${Math.max(...days) + 1}">+ Novo Dia (${Math.max(...days) + 1})</option>`;
+                  `<option value="${Math.max(...days) + 1}">+ Novo dia (${Math.max(...days) + 1})</option>`;
                   
   document.getElementById("add_name").value = "";
   document.getElementById("add_segment").value = "";
@@ -888,14 +1154,14 @@ function openAddModal() {
 }
 
 function fetchCurrentGPS() {
-  if (!navigator.geolocation) return alert("GPS não suportado.");
-  showToast("📍 Obtendo GPS...");
+  if (!navigator.geolocation) return alert("Geolocalização não disponível.");
+  showToast("Obtendo sinal GPS...");
   navigator.geolocation.getCurrentPosition(pos => {
     window.tempNewLat = pos.coords.latitude;
     window.tempNewLng = pos.coords.longitude;
     document.getElementById("add_address").value = `Coletado via GPS (${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)})`;
-    showToast("✓ GPS capturado!");
-  }, err => alert("Erro ao capturar GPS. Digite o endereço."));
+    showToast("Localização capturada");
+  }, err => alert("Não foi possível obter a localização. Digite o endereço."));
 }
 
 function saveNewEstablishment() {
@@ -907,7 +1173,7 @@ function saveNewEstablishment() {
   const phone = document.getElementById("add_phone").value.trim();
   const note = document.getElementById("add_note").value.trim();
 
-  if (!name || !address) return alert("Preencha Nome e Endereço.");
+  if (!name || !address) return alert("Preencha o nome e o endereço.");
 
   const newId = "manual-" + new Date().getTime();
   const newStop = {
@@ -937,7 +1203,7 @@ function saveNewEstablishment() {
   closeModal("modalAdd");
   renderDayBar();
   renderCards();
-  showToast("✓ Ponto adicionado à rota!");
+  showToast("Estabelecimento adicionado");
 
   syncItemToSheets(getStopData(newId));
 }
@@ -955,7 +1221,7 @@ function saveConfig() {
   localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(CONFIG));
   closeModal("modalConfig");
   updateSyncStatusHeader();
-  showToast("✓ Configuração salva!");
+  showToast("Ajustes salvos com sucesso");
 }
 
 function importTSVForCity() {
@@ -964,7 +1230,7 @@ function importTSVForCity() {
   if (!raw) return alert("Cole o TSV gerado pelo Gemini antes de importar.");
 
   const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
-  if (lines.length <= 1) return alert("Nenhuma linha encontrada no texto colado.");
+  if (lines.length <= 1) return alert("Nenhuma linha encontrada no texto.");
 
   const startIdx = lines[0].includes("Nome") || lines[0].includes("Dia") ? 1 : 0;
   const newStops = [];
@@ -1025,7 +1291,7 @@ function importTSVForCity() {
         fidelidade: fidelidade || "",
         note: note || "",
         date: "",
-        responsible: CONFIG.sellerName || "Vendedor"
+        responsible: CONFIG.sellerName || "Gabriel Mattos"
       };
     }
   }
@@ -1040,18 +1306,18 @@ function importTSVForCity() {
   localStorage.setItem(LS_SELECTED_CITY, currentCity);
   closeModal("modalConfig");
   initApp();
-  showToast(`✓ ${newStops.length} pontos carregados para ${finalCity}!`);
+  showToast(`${newStops.length} pontos carregados para ${finalCity}`);
 }
 
 function updateSyncStatusHeader() {
-  const syncText = document.getElementById("syncText");
-  const syncDot = document.getElementById("syncDot");
+  const cloudText = document.getElementById("cloudText");
+  const cloudDot = document.getElementById("cloudDot");
   if (CONFIG.apiUrl) {
-    syncDot.className = "sync-dot";
-    syncText.innerText = `Nuvem Ativa (${CONFIG.sellerName || 'Vendedor'})`;
+    cloudDot.className = "cloud-dot";
+    cloudText.innerText = `Nuvem ativa (${CONFIG.sellerName || 'Gabriel Mattos'})`;
   } else {
-    syncDot.className = "sync-dot";
-    syncText.innerText = "Modo Local (Configure em ⚙️)";
+    cloudDot.className = "cloud-dot";
+    cloudText.innerText = "Modo local";
   }
 }
 
@@ -1077,22 +1343,22 @@ function renderMap() {
   const latlngs = [];
   dayStops.forEach((stop, idx) => {
     const data = getStopData(stop.id);
-    const color = STATUS_COLORS[data.status] || "#8a7a72";
+    const color = STATUS_COLORS[data.status] || "#636363";
     latlngs.push([stop.lat, stop.lng]);
 
     const marker = L.circleMarker([stop.lat, stop.lng], {
-      radius: 9, fillColor: color, color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.95
+      radius: 8, fillColor: color, color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.95
     });
     marker.bindPopup(`
-      <b style="color:var(--grad-3);">${idx + 1}. ${stop.name}</b><br>
-      📍 ${stop.address}<br>
+      <b style="color:var(--b2u-orange);">${idx + 1}. ${stop.name}</b><br>
+      ${stop.address}<br>
       <b>Status:</b> ${data.status}
     `);
     mapLayer.addLayer(marker);
   });
 
   if (latlngs.length > 1) {
-    mapLayer.addLayer(L.polyline(latlngs, { color: '#F04E23', weight: 3, dashArray: '5, 8' }));
+    mapLayer.addLayer(L.polyline(latlngs, { color: '#ff5e0f', weight: 2.5, dashArray: '5, 8' }));
     map.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
   } else if (latlngs.length === 1) {
     map.setView(latlngs[0], 15);
