@@ -332,6 +332,20 @@
     font-size: 11.5px; font-weight: 600; margin-top: 8px;
   }
 
+  /* Tag de Temperatura do Lead */
+  .temp-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-left: 6px;
+  }
+  .temp-badge.temp-quente { background: #fff4ec; color: #ff5e0f; border: 1px solid #ffe4d1; }
+  .temp-badge.temp-morno { background: #fff8ec; color: #f08c0a; border: 1px solid #ffeccb; }
+  .temp-badge.temp-neutro { background: #f0f0f0; color: #636363; border: 1px solid #dedede; }
+  .temp-badge.temp-frio { background: #eaf2fd; color: #2d7ff0; border: 1px solid #d0e1fb; }
+
   /* Ações Rápidas (Sem emojis, botões com altura 36px e raio 12px) */
   .quick-actions-bar {
     display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;
@@ -576,9 +590,21 @@
       <button class="btn-modal-close" onclick="closeModal('modalQualify')">✕</button>
     </div>
 
-    <div class="form-field-group">
-      <label class="form-field-label">Status da visita</label>
-      <select class="form-select-input" id="q_status"></select>
+    <div class="form-grid-2">
+      <div class="form-field-group" style="flex:1.2;">
+        <label class="form-field-label">Status da visita</label>
+        <select class="form-select-input" id="q_status"></select>
+      </div>
+      <div class="form-field-group" style="flex:0.8;">
+        <label class="form-field-label">Temperatura do lead</label>
+        <select class="form-select-input" id="q_temperatura">
+          <option value="">Não avaliado</option>
+          <option value="Quente">🔥 Quente</option>
+          <option value="Morno">☀️ Morno</option>
+          <option value="Neutro">⚪ Neutro</option>
+          <option value="Frio">❄️ Frio</option>
+        </select>
+      </div>
     </div>
     
     <div class="form-field-group">
@@ -751,9 +777,24 @@ const STATUS_COLORS = {
   "Em negociação": "#ff5e0f",
   "Fechado": "#1e9e6a",
   "Termo assinado": "#13724b",
+  "Já com desconto - aberto a migrar": "#00838f",
+  "Já com desconto - satisfeito": "#78909c",
   "Já com desconto": "#00838f"
 };
-const STATUS_LIST = Object.keys(STATUS_COLORS);
+const STATUS_LIST = [
+  "Não visitado",
+  "Sem decisor no local",
+  "Retornar depois",
+  "Interessado - aguardando fatura",
+  "Proposta apresentada",
+  "Em negociação",
+  "Fechado",
+  "Termo assinado",
+  "Já com desconto - aberto a migrar",
+  "Já com desconto - satisfeito",
+  "Não elegível",
+  "Recusou"
+];
 
 const DEFAULT_CITIES = [
   "Pedro Leopoldo", "Matozinhos", "Lagoa Santa", "Vespasiano",
@@ -829,6 +870,7 @@ function getStopData(id) {
   const dyn = STATE[id] || {};
   return Object.assign({
     status: "Não visitado",
+    temperatura: "",
     date: "",
     note: "",
     contact: "",
@@ -953,7 +995,6 @@ function renderCards() {
     const statusColor = STATUS_COLORS[data.status] || "#636363";
     const isDone = data.status !== "Não visitado";
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
-    const wazeUrl = stop.lat && stop.lng ? `https://waze.com/ul?ll=${stop.lat},${stop.lng}&navigate=yes` : `https://waze.com/ul?q=${encodeURIComponent(stop.address + ' ' + currentCity)}`;
     const rawPhone = (data.phone || "").replace(/\D/g, "");
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
 
@@ -963,7 +1004,14 @@ function renderCards() {
           <div class="stop-badge">${index + 1}</div>
           <div class="card-headings">
             <div class="card-business-name">${stop.name}</div>
-            <div class="card-segment-tag">${stop.segment || 'Comércio'}</div>
+            <div class="card-segment-tag">
+              ${stop.segment || 'Comércio'}
+              ${data.temperatura ? `
+                <span class="temp-badge temp-${data.temperatura.toLowerCase()}">
+                  ${data.temperatura === 'Quente' ? '🔥' : data.temperatura === 'Morno' ? '☀️' : data.temperatura === 'Frio' ? '❄️' : '⚪'} ${data.temperatura}
+                </span>
+              ` : ''}
+            </div>
           </div>
         </div>
 
@@ -1101,6 +1149,7 @@ function openQualifyModal(id) {
   const selStatus = document.getElementById("q_status");
   selStatus.innerHTML = STATUS_LIST.map(st => `<option value="${st}" ${st === (data.status || 'Não visitado') ? 'selected' : ''}>${st}</option>`).join("");
 
+  document.getElementById("q_temperatura").value = data.temperatura || "";
   document.getElementById("q_contact").value = data.contact || "";
   document.getElementById("q_phone").value = data.phone || "";
   document.getElementById("q_email").value = data.email || "";
@@ -1123,6 +1172,7 @@ function saveQualifyData() {
   
   const chosenStatus = document.getElementById("q_status").value;
   STATE[currentEditingId].status = chosenStatus;
+  STATE[currentEditingId].temperatura = document.getElementById("q_temperatura").value;
   STATE[currentEditingId].contact = document.getElementById("q_contact").value.trim();
   STATE[currentEditingId].phone = document.getElementById("q_phone").value.trim();
   STATE[currentEditingId].email = document.getElementById("q_email").value.trim();
@@ -1135,7 +1185,7 @@ function saveQualifyData() {
   STATE[currentEditingId].date = dateStr;
 
   if (STATE[currentEditingId].concorrente && chosenStatus === "Não visitado") {
-    STATE[currentEditingId].status = "Já com desconto";
+    STATE[currentEditingId].status = "Já com desconto - aberto a migrar";
   }
 
   saveState(STATE);
@@ -1360,7 +1410,7 @@ function renderMap() {
     marker.bindPopup(`
       <b style="color:var(--b2u-orange);">${idx + 1}. ${stop.name}</b><br>
       ${stop.address}<br>
-      <b>Status:</b> ${data.status}
+      <b>Status:</b> ${data.status}${data.temperatura ? ` · <b>${data.temperatura}</b>` : ''}
     `);
     mapLayer.addLayer(marker);
   });
