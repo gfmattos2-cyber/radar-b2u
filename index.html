@@ -533,18 +533,7 @@
       <svg class="icon-svg" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M19 21v-4"/><path d="M19 17a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"/><path d="M9 10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5H9z"/></svg>
       Cidade:
     </div>
-    <select class="city-dropdown" id="citySelect" onchange="changeCity(this.value)">
-      <option value="Pedro Leopoldo">Pedro Leopoldo</option>
-      <option value="Matozinhos">Matozinhos</option>
-      <option value="Lagoa Santa">Lagoa Santa</option>
-      <option value="Vespasiano">Vespasiano</option>
-      <option value="Juatuba">Juatuba</option>
-      <option value="Mateus Leme">Mateus Leme</option>
-      <option value="Itaúna">Itaúna</option>
-      <option value="Congonhas">Congonhas</option>
-      <option value="Conselheiro Lafaiete">Conselheiro Lafaiete</option>
-      <option value="Ouro Branco">Ouro Branco</option>
-    </select>
+    <select class="city-dropdown" id="citySelect" onchange="changeCity(this.value)"></select>
   </div>
 
   <div class="cloud-status" id="cloudStatus">
@@ -814,11 +803,6 @@ const STATUS_LIST = [
   "Recusou"
 ];
 
-const DEFAULT_CITIES = [
-  "Pedro Leopoldo", "Matozinhos", "Lagoa Santa", "Vespasiano",
-  "Juatuba", "Mateus Leme", "Itaúna", "Congonhas", "Conselheiro Lafaiete", "Ouro Branco"
-];
-
 const DEFAULT_STOPS = [
   {id:"pl-01", day:1, cidade:"Pedro Leopoldo", name:"Rancho Festas e Eventos", segment:"Casa de eventos", address:"R. Nossa Sra. do Rosário, 1599 - Espraiado", bairro:"fora do circuito, ~7,2km", far:true, phone:"+55 31 99089-6855", lat:-19.6856888, lng:-44.0520705},
   {id:"pl-02", day:1, cidade:"Pedro Leopoldo", name:"Recanto Tapera", segment:"Pousada", address:"R. São Geraldo, 158 - Tapera", bairro:"fora do circuito, ~5,6km", far:true, phone:"+55 31 99665-2477", lat:-19.6720171, lng:-44.045876},
@@ -911,9 +895,27 @@ function initApp() {
   updateSyncStatusHeader();
 }
 
+function getAvailableCities() {
+  const cities = Array.from(new Set(
+    STOPS
+      .filter(s => s && s.name && s.name.trim())
+      .map(s => (s.cidade || "").trim())
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  return cities.length > 0 ? cities : ["Pedro Leopoldo"];
+}
+
 function populateCityDropdown() {
   const sel = document.getElementById("citySelect");
-  const availableCities = Array.from(new Set([...DEFAULT_CITIES, ...STOPS.map(s => s.cidade).filter(Boolean)]));
+  if (!sel) return;
+  const availableCities = getAvailableCities();
+  
+  if (!availableCities.includes(currentCity)) {
+    currentCity = availableCities[0];
+    localStorage.setItem(LS_SELECTED_CITY, currentCity);
+  }
+
   sel.innerHTML = availableCities.map(c => `<option value="${c}" ${c === currentCity ? 'selected' : ''}>${c}</option>`).join("");
 }
 
