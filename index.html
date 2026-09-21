@@ -452,6 +452,18 @@
     box-shadow: 0 0 0 4px var(--b2u-orange-50);
   }
   .form-grid-2 { display: flex; gap: 10px; }
+  .form-text-input.input-error, .form-select-input.input-error, .form-textarea-input.input-error {
+    border-color: var(--b2u-error) !important;
+    background-color: #fff9f9 !important;
+    box-shadow: 0 0 0 3px rgba(216, 58, 43, 0.15) !important;
+  }
+  .field-error-msg {
+    color: var(--b2u-error);
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    display: none;
+  }
 
   /* Botão Primário B2U (Manual: Altura 44px, Montserrat 700, Sentence case) */
   .btn-primary-b2u {
@@ -586,30 +598,35 @@
 <div class="modal-backdrop" id="modalQualify">
   <div class="modal-card">
     <div class="modal-top-bar">
-      <div class="modal-heading" id="qualifyTitle">Qualificar estabelecimento</div>
+      <div>
+        <div class="modal-heading" id="qualifyTitle">Qualificar estabelecimento</div>
+        <div style="font-size:11.5px; color:var(--b2u-ink-soft); margin-top:2px;">* Campos obrigatórios ao alterar o status da visita</div>
+      </div>
       <button class="btn-modal-close" onclick="closeModal('modalQualify')">✕</button>
     </div>
 
     <div class="form-grid-2">
       <div class="form-field-group" style="flex:1.2;">
         <label class="form-field-label">Status da visita</label>
-        <select class="form-select-input" id="q_status"></select>
+        <select class="form-select-input" id="q_status" onchange="onModalStatusChange()"></select>
       </div>
       <div class="form-field-group" style="flex:0.8;">
-        <label class="form-field-label">Temperatura do lead</label>
-        <select class="form-select-input" id="q_temperatura">
-          <option value="">Não avaliado</option>
+        <label class="form-field-label">Temperatura do lead <span style="color:var(--b2u-error);">*</span></label>
+        <select class="form-select-input" id="q_temperatura" onchange="clearInputError(this)">
+          <option value="">Selecione...</option>
           <option value="Quente">🔥 Quente</option>
           <option value="Morno">☀️ Morno</option>
           <option value="Neutro">⚪ Neutro</option>
           <option value="Frio">❄️ Frio</option>
         </select>
+        <div class="field-error-msg" id="err_temperatura">Selecione a temperatura do lead</div>
       </div>
     </div>
     
     <div class="form-field-group">
-      <label class="form-field-label">Nome do contato ou decisor</label>
-      <input type="text" class="form-text-input" id="q_contact" placeholder="Ex: Carlos (Proprietário)">
+      <label class="form-field-label">Nome do contato ou decisor <span style="color:var(--b2u-error);">*</span></label>
+      <input type="text" class="form-text-input" id="q_contact" placeholder="Ex: Carlos (Proprietário ou Gerente)" oninput="clearInputError(this)">
+      <div class="field-error-msg" id="err_contact">Informe o contato ou decisor atendido</div>
     </div>
 
     <div class="form-grid-2">
@@ -659,8 +676,9 @@
     </div>
 
     <div class="form-field-group">
-      <label class="form-field-label">Observações da visita</label>
-      <textarea class="form-textarea-input" id="q_note" rows="3" placeholder="Detalhes da conversa, horário de retorno, objeções..."></textarea>
+      <label class="form-field-label">Observações da visita <span style="color:var(--b2u-error);">*</span></label>
+      <textarea class="form-textarea-input" id="q_note" rows="3" placeholder="Detalhes da conversa, horário de retorno, objeções..." oninput="clearInputError(this)"></textarea>
+      <div class="field-error-msg" id="err_note">Preencha as observações da visita realizada</div>
     </div>
 
     <button class="btn-primary-b2u" onclick="saveQualifyData()">Salvar e sincronizar</button>
@@ -1126,7 +1144,102 @@ async function fetchDataFromSheet() {
   }
 }
 
+let originalStatusInModal = "";
+
+function clearInputError(inputEl) {
+  if (!inputEl) return;
+  inputEl.classList.remove("input-error");
+  const errDiv = inputEl.parentElement.querySelector(".field-error-msg");
+  if (errDiv) errDiv.style.display = "none";
+}
+
+function clearInputErrors() {
+  document.querySelectorAll(".input-error").forEach(el => el.classList.remove("input-error"));
+  document.querySelectorAll(".field-error-msg").forEach(el => el.style.display = "none");
+}
+
+function onModalStatusChange() {
+  const chosenStatus = document.getElementById("q_status").value;
+  if (chosenStatus !== "Não visitado" && chosenStatus !== originalStatusInModal) {
+    validateQualifyFields(false);
+  } else if (chosenStatus === "Não visitado") {
+    clearInputErrors();
+  }
+}
+
+function validateQualifyFields(focusFirst = true) {
+  const chosenStatus = document.getElementById("q_status").value;
+  
+  if (chosenStatus === "Não visitado") {
+    clearInputErrors();
+    return true;
+  }
+
+  const tempVal = (document.getElementById("q_temperatura").value || "").trim();
+  const contactVal = (document.getElementById("q_contact").value || "").trim();
+  const noteVal = (document.getElementById("q_note").value || "").trim();
+
+  let valid = true;
+  let firstInvalidEl = null;
+
+  const tempEl = document.getElementById("q_temperatura");
+  const contactEl = document.getElementById("q_contact");
+  const noteEl = document.getElementById("q_note");
+
+  if (!tempVal) {
+    tempEl.classList.add("input-error");
+    document.getElementById("err_temperatura").style.display = "block";
+    if (!firstInvalidEl) firstInvalidEl = tempEl;
+    valid = false;
+  } else {
+    tempEl.classList.remove("input-error");
+    document.getElementById("err_temperatura").style.display = "none";
+  }
+
+  if (!contactVal) {
+    contactEl.classList.add("input-error");
+    document.getElementById("err_contact").style.display = "block";
+    if (!firstInvalidEl) firstInvalidEl = contactEl;
+    valid = false;
+  } else {
+    contactEl.classList.remove("input-error");
+    document.getElementById("err_contact").style.display = "none";
+  }
+
+  if (!noteVal) {
+    noteEl.classList.add("input-error");
+    document.getElementById("err_note").style.display = "block";
+    if (!firstInvalidEl) firstInvalidEl = noteEl;
+    valid = false;
+  } else {
+    noteEl.classList.remove("input-error");
+    document.getElementById("err_note").style.display = "none";
+  }
+
+  if (!valid && focusFirst && firstInvalidEl) {
+    firstInvalidEl.focus();
+  }
+
+  return valid;
+}
+
 function updateStopStatus(id, newStatus) {
+  const currentData = getStopData(id);
+  if (currentData.status === newStatus) return;
+
+  const hasTemp = !!(currentData.temperatura || "").trim();
+  const hasContact = !!(currentData.contact || "").trim();
+  const hasNote = !!(currentData.note || "").trim();
+
+  // Sempre que alterar status para um status de visita, exige Temperatura, Contato e Observações
+  if (newStatus !== "Não visitado" && (!hasTemp || !hasContact || !hasNote)) {
+    openQualifyModal(id);
+    document.getElementById("q_status").value = newStatus;
+    validateQualifyFields(true);
+    showToast("Preencha os campos obrigatórios (*)");
+    return;
+  }
+
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   
@@ -1143,6 +1256,9 @@ function updateStopStatus(id, newStatus) {
 function openQualifyModal(id) {
   currentEditingId = id;
   const data = getStopData(id);
+  originalStatusInModal = data.status || "Não visitado";
+  
+  clearInputErrors();
   
   document.getElementById("qualifyTitle").innerText = `Qualificar: ${data.name}`;
   
@@ -1165,6 +1281,12 @@ function openQualifyModal(id) {
 
 function saveQualifyData() {
   if (!currentEditingId) return;
+
+  if (!validateQualifyFields(true)) {
+    showToast("Preencha todos os campos obrigatórios (*)");
+    return;
+  }
+
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
@@ -1379,7 +1501,13 @@ function updateSyncStatusHeader() {
   }
 }
 
-function closeModal(id) { document.getElementById(id).style.display = "none"; }
+function closeModal(id) {
+  document.getElementById(id).style.display = "none";
+  if (id === "modalQualify") {
+    clearInputErrors();
+    renderCards();
+  }
+}
 function showToast(msg) {
   const toast = document.getElementById("toast");
   toast.innerText = msg;
