@@ -941,7 +941,62 @@ function getStopData(id) {
   }, base, dyn);
 }
 
+function normalizeRowsByCityAndDay(stops) {
+  if (!Array.isArray(stops)) return stops;
+  
+  // Agrupa os itens por Cidade + Dia
+  const groups = {};
+  stops.forEach(s => {
+    if (!s) return;
+    const city = (s.cidade || "Pedro Leopoldo").trim();
+    const day = parseInt(s.day, 10) || 1;
+    const key = city.toLowerCase() + "___" + day;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
+  });
+
+  // Para cada grupo (Cidade + Dia), garante ordem sequencial iniciando SEMPRE do 1
+  Object.keys(groups).forEach(key => {
+    const list = groups[key];
+    
+    // Ordena pela ordem existente se for válida ou preserva sequência
+    list.sort((a, b) => {
+      const oA = parseInt(a.ordem, 10) || 999;
+      const oB = parseInt(b.ordem, 10) || 999;
+      return oA - oB;
+    });
+
+    // Detecta se a ordem veio com números de linha de planilha (ex: 455, 61) ou pulos grandes
+    const firstOrdem = parseInt(list[0].ordem, 10);
+    const hasRowIndexOrders = list.some(item => {
+      const o = parseInt(item.ordem, 10);
+      return isNaN(o) || o > 50 || o <= 0;
+    });
+    const needsReset = hasRowIndexOrders || isNaN(firstOrdem) || firstOrdem !== 1;
+
+    list.forEach((item, idx) => {
+      const seq = idx + 1;
+      if (needsReset || !item.ordem) {
+        item.ordem = seq;
+      }
+      
+      // Regenera o código para ter o formato [SIGLA]-[DIA]-[ORDEM] perfeito
+      // Se não tem código, ou se tinha o código antigo com número de linha (ex: RAP-01-455)
+      const currentCode = String(item.codigo || "").trim();
+      const codeIsRowIndexed = currentCode.includes("455") || currentCode.includes("row-") || !currentCode.match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
+      
+      if (!currentCode || needsReset || codeIsRowIndexed) {
+        item.codigo = generateLeadCode(item.cidade, item.day, item.ordem);
+      }
+    });
+  });
+
+  return stops;
+}
+
 function initApp() {
+  STOPS = normalizeRowsByCityAndDay(STOPS);
+  saveStops(STOPS);
   populateCityDropdown();
   renderDayBar();
   renderCards();
@@ -1078,9 +1133,10 @@ function renderCards() {
     const isDone = data.status !== "Não visitado";
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
     const rawPhone = (data.phone || "").replace(/\D/g, "");
-    const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
-    const visitOrder = data.ordem || (index + 1);
-    const leadCode = data.codigo || generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
+    const rawO = parseInt(data.ordem, 10);
+    const visitOrder = (!isNaN(rawO) && rawO > 0 && rawO <= 50) ? rawO : (index + 1);
+    const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
+    const leadCode = validCode ? data.codigo : generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
 
     return `
       <div class="establishment-card ${isDone ? 'visited' : ''}" id="card-${stop.id}">
@@ -1290,7 +1346,7 @@ async function fetchDataFromSheet() {
         return !cloudKeys.has(key);
       });
       
-      const mergedStops = [...json.rows, ...pendingLocalStops];
+      const mergedStops = normalizeRowsByCityAndDay([...json.rows, ...pendingLocalStops]);
       saveStops(mergedStops);
       
       populateCityDropdown();
@@ -1440,8 +1496,10 @@ function openQualifyModal(id) {
   
   clearInputErrors();
   
-  const visitOrder = data.ordem || 1;
-  const leadCode = data.codigo || generateLeadCode(data.cidade || currentCity, data.day || currentDay, visitOrder);
+  const rawO = parseInt(data.ordem, 10);
+  const visitOrder = (!isNaN(rawO) && rawO > 0 && rawO <= 50) ? rawO : 1;
+  const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
+  const leadCode = validCode ? data.codigo : generateLeadCode(data.cidade || currentCity, data.day || currentDay, visitOrder);
   document.getElementById("qualifyTitle").innerText = `[${leadCode}] ${data.name}`;
   
   const selStatus = document.getElementById("q_status");
@@ -1759,9 +1817,10 @@ function renderMap() {
   const latlngs = [];
   dayStops.forEach((stop, idx) => {
     const data = getStopData(stop.id);
-    const color = STATUS_COLORS[data.status] || "#636363";
-    const visitOrder = data.ordem || (idx + 1);
-    const leadCode = data.codigo || generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
+    const rawO = parseInt(data.ordem, 10);
+    const visitOrder = (!isNaN(rawO) && rawO > 0 && rawO <= 50) ? rawO : (idx + 1);
+    const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
+    const leadCode = validCode ? data.codigo : generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
     latlngs.push([stop.lat, stop.lng]);
 
     const marker = L.circleMarker([stop.lat, stop.lng], {
