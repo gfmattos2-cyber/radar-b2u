@@ -647,6 +647,7 @@
     <div class="modal-top-bar">
       <div>
         <div class="modal-heading" id="qualifyTitle">Qualificar estabelecimento</div>
+        <div id="qualifyDatesBadge" style="font-size:11.5px; color:var(--b2u-orange-press); font-weight:600; margin-top:2px; display:none;"></div>
         <div style="font-size:11.5px; color:var(--b2u-ink-soft); margin-top:2px;">* Campos obrigatórios ao alterar o status da visita</div>
       </div>
       <button class="btn-modal-close" onclick="closeModal('modalQualify')">✕</button>
@@ -1036,7 +1037,8 @@ function getStopData(id) {
     ordem: base.ordem || dyn.ordem || null,
     status: "Não visitado",
     temperatura: "",
-    date: "",
+    date_first: base.date_first || dyn.date_first || "",
+    date: base.date || dyn.date || "",
     note: "",
     contact: "",
     phone: base.phone || "",
@@ -1652,6 +1654,9 @@ function updateStopStatus(id, newStatus) {
   const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   
   if (!STATE[id]) STATE[id] = {};
+  if (!STATE[id].date_first && !currentData.date_first) {
+    STATE[id].date_first = dateStr;
+  }
   STATE[id].status = newStatus;
   STATE[id].date = dateStr;
   STATE[id].responsible = CONFIG.sellerName || "Gabriel Mattos";
@@ -1673,6 +1678,18 @@ function openQualifyModal(id) {
   const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
   const leadCode = validCode ? data.codigo : generateLeadCode(data.cidade || currentCity, data.day || currentDay, visitOrder);
   document.getElementById("qualifyTitle").innerText = `[${leadCode}] ${data.name}`;
+
+  const datesBadge = document.getElementById("qualifyDatesBadge");
+  if (datesBadge) {
+    if (data.date_first || data.date) {
+      const p = data.date_first ? data.date_first.split(' ')[0] : (data.date ? data.date.split(' ')[0] : 'Hoje');
+      const u = data.date ? data.date.split(' ')[0] : p;
+      datesBadge.innerHTML = `📅 1º contato: <b>${p}</b> ${data.date ? `· Último contato: <b>${u}</b>` : ''}`;
+      datesBadge.style.display = "block";
+    } else {
+      datesBadge.style.display = "none";
+    }
+  }
   
   const selStatus = document.getElementById("q_status");
   selStatus.innerHTML = STATUS_LIST.map(st => `<option value="${st}" ${st === (data.status || 'Não visitado') ? 'selected' : ''}>${st}</option>`).join("");
@@ -1702,7 +1719,11 @@ function saveQualifyData() {
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
+  const currentData = getStopData(currentEditingId);
   if (!STATE[currentEditingId]) STATE[currentEditingId] = {};
+  if (!STATE[currentEditingId].date_first && !currentData.date_first) {
+    STATE[currentEditingId].date_first = dateStr;
+  }
   
   const chosenStatus = document.getElementById("q_status").value;
   STATE[currentEditingId].status = chosenStatus;
@@ -1818,6 +1839,7 @@ function saveNewEstablishment() {
   STATE[newId].ordem = nextOrdem;
   STATE[newId].status = "Não visitado";
   STATE[newId].cidade = chosenCity;
+  STATE[newId].date_first = dateStr;
   STATE[newId].date = dateStr;
   if (note) STATE[newId].note = note;
   saveState(STATE);
