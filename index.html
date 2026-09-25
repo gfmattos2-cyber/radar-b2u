@@ -346,6 +346,17 @@
   .temp-badge.temp-neutro { background: #f0f0f0; color: #636363; border: 1px solid #dedede; }
   .temp-badge.temp-frio { background: #eaf2fd; color: #2d7ff0; border: 1px solid #d0e1fb; }
 
+  /* Tag de Código do Lead */
+  .lead-code-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0;
+    padding: 2px 7px; border-radius: 4px;
+    display: inline-flex; align-items: center;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
   /* Ações Rápidas (Sem emojis, botões com altura 36px e raio 12px) */
   .quick-actions-bar {
     display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;
@@ -683,8 +694,10 @@
     </div>
 
     <div class="form-field-group">
-      <label class="form-field-label">Cidade</label>
-      <input type="text" class="form-text-input" id="add_city" readonly>
+      <label class="form-field-label">Cidade *</label>
+      <input list="cities_datalist" class="form-text-input" id="add_city" placeholder="Selecione ou digite a cidade...">
+      <datalist id="cities_datalist"></datalist>
+      <small style="color:var(--b2u-ink-soft); font-size:11px; margin-top:3px; display:block;">Pode selecionar da lista ou digitar qualquer nova cidade.</small>
     </div>
 
     <div class="form-field-group">
@@ -752,6 +765,10 @@
     </div>
 
     <button class="btn-primary-b2u" onclick="saveConfig()">Salvar ajustes</button>
+    <button type="button" class="btn-action" style="width:100%; justify-content:center; height:38px; margin-top:8px;" onclick="forcePushAllLocalStops()">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Reenviar cadastros locais à planilha
+    </button>
 
     <hr style="border:0; border-top:1px solid var(--b2u-line); margin:18px 0;">
 
@@ -804,17 +821,51 @@ const STATUS_LIST = [
 ];
 
 const DEFAULT_STOPS = [
-  {id:"pl-01", day:1, cidade:"Pedro Leopoldo", name:"Rancho Festas e Eventos", segment:"Casa de eventos", address:"R. Nossa Sra. do Rosário, 1599 - Espraiado", bairro:"fora do circuito, ~7,2km", far:true, phone:"+55 31 99089-6855", lat:-19.6856888, lng:-44.0520705},
-  {id:"pl-02", day:1, cidade:"Pedro Leopoldo", name:"Recanto Tapera", segment:"Pousada", address:"R. São Geraldo, 158 - Tapera", bairro:"fora do circuito, ~5,6km", far:true, phone:"+55 31 99665-2477", lat:-19.6720171, lng:-44.045876},
-  {id:"pl-03", day:1, cidade:"Pedro Leopoldo", name:"COLÉGIO M2", segment:"Escola", address:"R. Teófilo Calazans de Barros, 100 - Santo Antonio", bairro:"fora do circuito, ~3,3km", far:true, phone:"+55 31 3662-3901", lat:-19.6485871, lng:-44.0532064},
-  {id:"pl-04", day:1, cidade:"Pedro Leopoldo", name:"Celeiro de Hóspedes", segment:"Pousada", address:"R. Comendador Antônio Alves, 2565 - Santo Antônio", bairro:"Santo Antônio", phone:"+55 31 99770-1025", lat:-19.6349319, lng:-44.0305764},
-  {id:"pl-05", day:1, cidade:"Pedro Leopoldo", name:"Big Pão", segment:"Padaria", address:"R. Comendador Antônio Alves, 1960 - São José", bairro:"São José", phone:"+55 31 3661-2090", lat:-19.6303234, lng:-44.0345307},
-  {id:"pl-06", day:1, cidade:"Pedro Leopoldo", name:"Revisauto Centro Automotivo", segment:"Oficina mecânica", address:"R. Comendador Antônio Alves, 1415 - Centro", bairro:"Centro", phone:"+55 31 98982-0536", lat:-19.6263561, lng:-44.0373868},
-  {id:"pl-07", day:1, cidade:"Pedro Leopoldo", name:"Marina Coisas da Roça", segment:"Padaria", address:"R. Comendador Antônio Alves, 1213 - Centro", bairro:"Centro", phone:"+55 31 3661-3141", lat:-19.6248589, lng:-44.038407},
-  {id:"pl-08", day:1, cidade:"Pedro Leopoldo", name:"Zé Wilson Restaurante", segment:"Restaurante", address:"R. Comendador Antônio Alves, 1009 - Centro", bairro:"Centro", phone:"+55 31 3661-1223", lat:-19.6232364, lng:-44.0398478},
-  {id:"pl-09", day:1, cidade:"Pedro Leopoldo", name:"Academia PULSAR", segment:"Academia", address:"R. Comendador Antônio Alves, 645 - Centro", bairro:"Centro", phone:"+55 31 3660-4021", lat:-19.6207676, lng:-44.0416635},
-  {id:"pl-10", day:1, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
+  {id:"pl-01", codigo:"PL-01-01", day:1, ordem:1, cidade:"Pedro Leopoldo", name:"Rancho Festas e Eventos", segment:"Casa de eventos", address:"R. Nossa Sra. do Rosário, 1599 - Espraiado", bairro:"fora do circuito, ~7,2km", far:true, phone:"+55 31 99089-6855", lat:-19.6856888, lng:-44.0520705},
+  {id:"pl-02", codigo:"PL-01-02", day:1, ordem:2, cidade:"Pedro Leopoldo", name:"Recanto Tapera", segment:"Pousada", address:"R. São Geraldo, 158 - Tapera", bairro:"fora do circuito, ~5,6km", far:true, phone:"+55 31 99665-2477", lat:-19.6720171, lng:-44.045876},
+  {id:"pl-03", codigo:"PL-01-03", day:1, ordem:3, cidade:"Pedro Leopoldo", name:"COLÉGIO M2", segment:"Escola", address:"R. Teófilo Calazans de Barros, 100 - Santo Antonio", bairro:"fora do circuito, ~3,3km", far:true, phone:"+55 31 3662-3901", lat:-19.6485871, lng:-44.0532064},
+  {id:"pl-04", codigo:"PL-01-04", day:1, ordem:4, cidade:"Pedro Leopoldo", name:"Celeiro de Hóspedes", segment:"Pousada", address:"R. Comendador Antônio Alves, 2565 - Santo Antônio", bairro:"Santo Antônio", phone:"+55 31 99770-1025", lat:-19.6349319, lng:-44.0305764},
+  {id:"pl-05", codigo:"PL-01-05", day:1, ordem:5, cidade:"Pedro Leopoldo", name:"Big Pão", segment:"Padaria", address:"R. Comendador Antônio Alves, 1960 - São José", bairro:"São José", phone:"+55 31 3661-2090", lat:-19.6303234, lng:-44.0345307},
+  {id:"pl-06", codigo:"PL-01-06", day:1, ordem:6, cidade:"Pedro Leopoldo", name:"Revisauto Centro Automotivo", segment:"Oficina mecânica", address:"R. Comendador Antônio Alves, 1415 - Centro", bairro:"Centro", phone:"+55 31 98982-0536", lat:-19.6263561, lng:-44.0373868},
+  {id:"pl-07", codigo:"PL-01-07", day:1, ordem:7, cidade:"Pedro Leopoldo", name:"Marina Coisas da Roça", segment:"Padaria", address:"R. Comendador Antônio Alves, 1213 - Centro", bairro:"Centro", phone:"+55 31 3661-3141", lat:-19.6248589, lng:-44.038407},
+  {id:"pl-08", codigo:"PL-01-08", day:1, ordem:8, cidade:"Pedro Leopoldo", name:"Zé Wilson Restaurante", segment:"Restaurante", address:"R. Comendador Antônio Alves, 1009 - Centro", bairro:"Centro", phone:"+55 31 3661-1223", lat:-19.6232364, lng:-44.0398478},
+  {id:"pl-09", codigo:"PL-01-09", day:1, ordem:9, cidade:"Pedro Leopoldo", name:"Academia PULSAR", segment:"Academia", address:"R. Comendador Antônio Alves, 645 - Centro", bairro:"Centro", phone:"+55 31 3660-4021", lat:-19.6207676, lng:-44.0416635},
+  {id:"pl-10", codigo:"PL-01-10", day:1, ordem:10, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
 ];
+
+const CITY_ACRONYMS = {
+  "pedro leopoldo": "PL",
+  "matozinhos": "MAT",
+  "lagoa santa": "LS",
+  "vespasiano": "VES",
+  "raposos": "RAP",
+  "pompéu": "POM",
+  "pompeu": "POM",
+  "papagaios": "PAP",
+  "rio acima": "RA",
+  "juatuba": "JUA",
+  "mateus leme": "ML",
+  "itaúna": "ITA",
+  "itauna": "ITA",
+  "são tiago": "ST",
+  "sao tiago": "ST",
+  "lavras": "LAV"
+};
+
+function getCityAcronym(cidade) {
+  if (!cidade) return "B2U";
+  const clean = String(cidade).trim().toLowerCase();
+  if (CITY_ACRONYMS[clean]) return CITY_ACRONYMS[clean];
+  const normalized = clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+  return (normalized.slice(0, 3) || "B2U").toUpperCase();
+}
+
+function generateLeadCode(cidade, day, ordem) {
+  const acr = getCityAcronym(cidade);
+  const dStr = String(day || 1).padStart(2, "0");
+  const oStr = String(ordem || 1).padStart(2, "0");
+  return `${acr}-${dStr}-${oStr}`;
+}
 
 // URL do Google Apps Script configurada pelo usuário
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxxvqn0H_hYAkwIzge6WvInNbDIGHn2fYhkC3mcLVt48BVnmjX4MSdknKNuauH1JysVfw/exec";
@@ -871,6 +922,8 @@ function getStopData(id) {
   const base = STOPS.find(s => s.id === id) || {};
   const dyn = STATE[id] || {};
   return Object.assign({
+    codigo: base.codigo || dyn.codigo || "",
+    ordem: base.ordem || dyn.ordem || null,
     status: "Não visitado",
     temperatura: "",
     date: "",
@@ -893,7 +946,9 @@ function initApp() {
   renderDayBar();
   renderCards();
   updateSyncStatusHeader();
+  setTimeout(flushPendingSyncQueue, 1500);
 }
+window.addEventListener("online", flushPendingSyncQueue);
 
 function getAvailableCities() {
   const cities = Array.from(new Set(
@@ -993,6 +1048,13 @@ function renderCards() {
     );
   }
 
+  // Ordena rigorosamente pela Ordem da Rota de Visita
+  dayStops.sort((a, b) => {
+    const oA = parseInt(a.ordem || (STATE[a.id] && STATE[a.id].ordem), 10) || 999;
+    const oB = parseInt(b.ordem || (STATE[b.id] && STATE[b.id].ordem), 10) || 999;
+    return oA - oB;
+  });
+
   const total = dayStops.length;
   const visited = dayStops.filter(s => {
     const st = (STATE[s.id] && STATE[s.id].status) || "Não visitado";
@@ -1017,13 +1079,18 @@ function renderCards() {
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
     const rawPhone = (data.phone || "").replace(/\D/g, "");
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
+    const visitOrder = data.ordem || (index + 1);
+    const leadCode = data.codigo || generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
 
     return `
       <div class="establishment-card ${isDone ? 'visited' : ''}" id="card-${stop.id}">
         <div class="card-header-row">
-          <div class="stop-badge">${index + 1}</div>
+          <div class="stop-badge">${visitOrder}</div>
           <div class="card-headings">
-            <div class="card-business-name">${stop.name}</div>
+            <div class="card-business-name">
+              ${stop.name}
+              <span class="lead-code-badge">${leadCode}</span>
+            </div>
             <div class="card-segment-tag">
               ${stop.segment || 'Comércio'}
               ${data.temperatura ? `
@@ -1091,11 +1158,84 @@ function renderCards() {
 }
 
 /* =========================================================
+   FILA DE SINCRONIZAÇÃO RESILIENTE & OFFLINE-FIRST
+   ========================================================= */
+const LS_QUEUE_KEY = "radar_b2u_pending_queue_v1";
+
+function getPendingQueue() {
+  try {
+    const raw = localStorage.getItem(LS_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function savePendingQueue(q) {
+  try { localStorage.setItem(LS_QUEUE_KEY, JSON.stringify(q)); } catch(e) {}
+}
+
+function getSyncItemKey(item) {
+  if (!item) return "";
+  if (item.codigo) return "code:" + String(item.codigo).trim().toUpperCase();
+  const n = (item.name || "").trim().toLowerCase();
+  const c = (item.cidade || item.city || "").trim().toLowerCase();
+  return "nc:" + n + "___" + c;
+}
+
+function addToPendingSync(itemData) {
+  const queue = getPendingQueue();
+  const key = getSyncItemKey(itemData);
+  const existingIdx = queue.findIndex(q => getSyncItemKey(q) === key);
+  if (existingIdx !== -1) {
+    queue[existingIdx] = itemData;
+  } else {
+    queue.push(itemData);
+  }
+  savePendingQueue(queue);
+}
+
+function removeFromPendingSync(itemOrName) {
+  const queue = getPendingQueue();
+  const targetKey = typeof itemOrName === "object" ? getSyncItemKey(itemOrName) : "";
+  const targetName = typeof itemOrName === "string" ? itemOrName.trim().toLowerCase() : "";
+  const filtered = queue.filter(q => {
+    if (targetKey) return getSyncItemKey(q) !== targetKey;
+    if (targetName) return (q.name || "").trim().toLowerCase() !== targetName;
+    return true;
+  });
+  savePendingQueue(filtered);
+}
+
+async function flushPendingSyncQueue() {
+  if (!CONFIG.apiUrl) return;
+  const queue = getPendingQueue();
+  if (queue.length === 0) return;
+
+  for (const item of queue) {
+    try {
+      const payload = { action: "update_or_insert", data: item };
+      await fetch(CONFIG.apiUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      removeFromPendingSync(item);
+    } catch(err) {
+      console.warn("Falha ao descarregar item da fila:", err);
+      break;
+    }
+  }
+}
+
+/* =========================================================
    SINCRONIZAÇÃO EM NUVEM
    ========================================================= */
 async function syncItemToSheets(itemData) {
   const cloudDot = document.getElementById("cloudDot");
   const cloudText = document.getElementById("cloudText");
+
+  // Garante que o item esteja na fila persistente de pendências
+  addToPendingSync(itemData);
 
   if (!CONFIG.apiUrl) {
     cloudDot.className = "cloud-dot";
@@ -1111,12 +1251,16 @@ async function syncItemToSheets(itemData) {
     await fetch(CONFIG.apiUrl, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     });
+    
     cloudDot.className = "cloud-dot";
     cloudText.innerText = "Nuvem ativa";
     showToast("Atualizado na planilha");
+    
+    // Tenta descarregar outros itens pendentes da fila
+    setTimeout(flushPendingSyncQueue, 1000);
   } catch (err) {
     cloudDot.className = "cloud-dot offline";
     cloudText.innerText = "Offline (salvo no aparelho)";
@@ -1133,17 +1277,51 @@ async function fetchDataFromSheet() {
     const res = await fetch(CONFIG.apiUrl);
     const json = await res.json();
     if (json.success && json.rows && json.rows.length > 0) {
-      saveStops(json.rows);
+      // PRESERVAÇÃO TOTAL DE DADOS:
+      // Identifica com precisão estabelecimentos pela Chave Única (Código) ou Nome + Cidade
+      const cloudKeys = new Set(json.rows.map(r => {
+        if (r.codigo) return "code:" + String(r.codigo).trim().toUpperCase();
+        return "nc:" + (r.name || "").trim().toLowerCase() + "___" + (r.cidade || "").trim().toLowerCase();
+      }));
+      
+      const pendingLocalStops = STOPS.filter(s => {
+        if (!s.id || !String(s.id).startsWith("manual-")) return false;
+        const key = s.codigo ? "code:" + String(s.codigo).trim().toUpperCase() : "nc:" + (s.name || "").trim().toLowerCase() + "___" + (s.cidade || "").trim().toLowerCase();
+        return !cloudKeys.has(key);
+      });
+      
+      const mergedStops = [...json.rows, ...pendingLocalStops];
+      saveStops(mergedStops);
+      
       populateCityDropdown();
       renderDayBar();
       renderCards();
-      showToast(`${json.rows.length} registros atualizados!`);
+      
+      if (pendingLocalStops.length > 0) {
+        showToast(`${json.rows.length} da planilha + ${pendingLocalStops.length} pendentes reenviando...`);
+        flushPendingSyncQueue();
+      } else {
+        showToast(`${json.rows.length} registros atualizados!`);
+      }
     } else {
       showToast("Planilha vazia ou sem novos dados");
     }
   } catch(e) {
     alert("Erro ao sincronizar dados: " + e.message);
   }
+}
+
+async function forcePushAllLocalStops() {
+  const manualStops = STOPS.filter(s => s.id && String(s.id).startsWith("manual-"));
+  if (manualStops.length === 0) {
+    return alert("Nenhum cadastro local pendente encontrado neste dispositivo.");
+  }
+  showToast(`Reenviando ${manualStops.length} cadastros locais para a planilha...`);
+  for (const s of manualStops) {
+    const data = getStopData(s.id);
+    await syncItemToSheets(data);
+  }
+  showToast("Todos os cadastros locais foram reenviados com sucesso!");
 }
 
 let originalStatusInModal = "";
@@ -1262,7 +1440,9 @@ function openQualifyModal(id) {
   
   clearInputErrors();
   
-  document.getElementById("qualifyTitle").innerText = `Qualificar: ${data.name}`;
+  const visitOrder = data.ordem || 1;
+  const leadCode = data.codigo || generateLeadCode(data.cidade || currentCity, data.day || currentDay, visitOrder);
+  document.getElementById("qualifyTitle").innerText = `[${leadCode}] ${data.name}`;
   
   const selStatus = document.getElementById("q_status");
   selStatus.innerHTML = STATUS_LIST.map(st => `<option value="${st}" ${st === (data.status || 'Não visitado') ? 'selected' : ''}>${st}</option>`).join("");
@@ -1320,7 +1500,15 @@ function saveQualifyData() {
 }
 
 function openAddModal() {
-  document.getElementById("add_city").value = currentCity;
+  const cityInput = document.getElementById("add_city");
+  cityInput.value = currentCity || "";
+
+  const datalist = document.getElementById("cities_datalist");
+  if (datalist) {
+    const allCities = getAvailableCities();
+    datalist.innerHTML = allCities.map(c => `<option value="${c}">`).join("");
+  }
+
   const sel = document.getElementById("add_day");
   const days = getDaysList();
   sel.innerHTML = days.map(d => `<option value="${d}" ${d === currentDay ? 'selected' : ''}>Dia ${d}</option>`).join("") +
@@ -1347,21 +1535,39 @@ function fetchCurrentGPS() {
 }
 
 function saveNewEstablishment() {
+  const chosenCity = (document.getElementById("add_city").value || "").trim() || currentCity || "Pedro Leopoldo";
   const name = document.getElementById("add_name").value.trim();
   const segment = document.getElementById("add_segment").value.trim();
   const address = document.getElementById("add_address").value.trim();
-  const day = parseInt(document.getElementById("add_day").value, 10);
+  const day = parseInt(document.getElementById("add_day").value, 10) || 1;
   const bairro = document.getElementById("add_bairro").value.trim();
   const phone = document.getElementById("add_phone").value.trim();
   const note = document.getElementById("add_note").value.trim();
 
+  if (!chosenCity) return alert("Por favor, preencha o nome da cidade.");
   if (!name || !address) return alert("Preencha o nome e o endereço.");
+
+  // Calcula a ordem da rota e o código único para esta cidade e dia
+  const cityStopsForDay = STOPS.filter(s => 
+    (s.cidade || "").toLowerCase() === chosenCity.toLowerCase() && 
+    (parseInt(s.day, 10) || 1) === day
+  );
+  let maxOrdem = 0;
+  cityStopsForDay.forEach(s => {
+    const o = parseInt(s.ordem, 10) || (STATE[s.id] && parseInt(STATE[s.id].ordem, 10)) || 0;
+    if (o > maxOrdem) maxOrdem = o;
+  });
+  if (maxOrdem === 0) maxOrdem = cityStopsForDay.length;
+  const nextOrdem = maxOrdem + 1;
+  const leadCode = generateLeadCode(chosenCity, day, nextOrdem);
 
   const newId = "manual-" + new Date().getTime();
   const newStop = {
     id: newId,
+    codigo: leadCode,
     day: day,
-    cidade: currentCity,
+    ordem: nextOrdem,
+    cidade: chosenCity,
     name: name,
     segment: segment || "Comércio",
     address: address,
@@ -1374,20 +1580,34 @@ function saveNewEstablishment() {
   STOPS.push(newStop);
   saveStops(STOPS);
 
-  if (note) {
-    const now = new Date();
-    const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    STATE[newId] = { note: note, date: dateStr, status: "Não visitado" };
-    saveState(STATE);
-  }
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  
+  if (!STATE[newId]) STATE[newId] = {};
+  STATE[newId].codigo = leadCode;
+  STATE[newId].ordem = nextOrdem;
+  STATE[newId].status = "Não visitado";
+  STATE[newId].cidade = chosenCity;
+  STATE[newId].date = dateStr;
+  if (note) STATE[newId].note = note;
+  saveState(STATE);
 
+  // Muda a cidade ativa para a cidade do estabelecimento adicionado
+  currentCity = chosenCity;
+  localStorage.setItem(LS_SELECTED_CITY, currentCity);
   currentDay = day;
-  closeModal("modalAdd");
+
+  populateCityDropdown();
   renderDayBar();
   renderCards();
-  showToast("Estabelecimento adicionado");
+  closeModal("modalAdd");
+  showToast(`Adicionado: ${name} [${leadCode}]`);
 
-  syncItemToSheets(getStopData(newId));
+  const fullData = getStopData(newId);
+  fullData.cidade = chosenCity;
+  fullData.codigo = leadCode;
+  fullData.ordem = nextOrdem;
+  syncItemToSheets(fullData);
 }
 
 function openConfigModal() {
@@ -1519,6 +1739,14 @@ function showToast(msg) {
 
 function renderMap() {
   const dayStops = getCityStops().filter(s => (s.day || 1) === currentDay && s.lat && s.lng);
+  
+  // Ordena pela Ordem da Rota
+  dayStops.sort((a, b) => {
+    const oA = parseInt(a.ordem || (STATE[a.id] && STATE[a.id].ordem), 10) || 999;
+    const oB = parseInt(b.ordem || (STATE[b.id] && STATE[b.id].ordem), 10) || 999;
+    return oA - oB;
+  });
+
   if (!map) {
     map = L.map('map-view').setView([-19.620, -44.040], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -1532,13 +1760,15 @@ function renderMap() {
   dayStops.forEach((stop, idx) => {
     const data = getStopData(stop.id);
     const color = STATUS_COLORS[data.status] || "#636363";
+    const visitOrder = data.ordem || (idx + 1);
+    const leadCode = data.codigo || generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
     latlngs.push([stop.lat, stop.lng]);
 
     const marker = L.circleMarker([stop.lat, stop.lng], {
       radius: 8, fillColor: color, color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.95
     });
     marker.bindPopup(`
-      <b style="color:var(--b2u-orange);">${idx + 1}. ${stop.name}</b><br>
+      <b style="color:var(--b2u-orange);">${visitOrder}. [${leadCode}] ${stop.name}</b><br>
       ${stop.address}<br>
       <b>Status:</b> ${data.status}${data.temperatura ? ` · <b>${data.temperatura}</b>` : ''}
     `);
