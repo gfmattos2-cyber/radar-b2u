@@ -1133,6 +1133,7 @@ function renderCards() {
     const isDone = data.status !== "Não visitado";
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
     const rawPhone = (data.phone || "").replace(/\D/g, "");
+    const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
     const rawO = parseInt(data.ordem, 10);
     const visitOrder = (!isNaN(rawO) && rawO > 0 && rawO <= 50) ? rawO : (index + 1);
     const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
