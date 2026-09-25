@@ -105,7 +105,7 @@
     background: var(--b2u-gradient);
     color: #ffffff;
     padding: 14px 18px 12px;
-    position: sticky; top: 0; z-index: 50;
+    position: sticky; top: 0; z-index: 1100;
     box-shadow: 0 4px 20px rgba(255, 94, 15, 0.25);
   }
 
@@ -412,16 +412,19 @@
 
   /* ---------- MAPA LEAFLET ---------- */
   #map-view {
-    display: none; height: calc(100vh - 250px); width: 100%;
+    display: none; height: calc(100vh - 250px); min-height: 420px; width: 100%;
     border-radius: var(--radius-card);
     border: 1px solid var(--b2u-line);
     box-shadow: var(--shadow-sm);
+    position: relative; z-index: 1;
+    overflow: hidden;
+    margin-top: 6px; margin-bottom: 24px;
   }
 
   /* ---------- MODAIS / BOTTOM SHEET ---------- */
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(54, 54, 54, 0.6);
-    z-index: 100; display: none; align-items: flex-end; justify-content: center;
+    z-index: 2000; display: none; align-items: flex-end; justify-content: center;
     backdrop-filter: blur(2px);
   }
   .modal-card {
@@ -497,7 +500,7 @@
     background: var(--b2u-ink); color: #ffffff;
     padding: 9px 18px; border-radius: var(--radius-pill);
     font-family: 'Montserrat', sans-serif; font-size: 12.5px; font-weight: 600;
-    z-index: 200; display: none; box-shadow: var(--shadow-md);
+    z-index: 2100; display: none; box-shadow: var(--shadow-md);
   }
 
   /* Botão Flutuante Adicionar Ponto (FAB) */
@@ -507,7 +510,7 @@
     width: 52px; height: 52px; border-radius: 50%; border: none;
     box-shadow: var(--shadow-glow);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 45;
+    cursor: pointer; z-index: 1050;
     transition: transform 220ms ease-out;
   }
   .floating-add-btn:active { transform: scale(0.95); }
@@ -867,6 +870,66 @@ function generateLeadCode(cidade, day, ordem) {
   return `${acr}-${dStr}-${oStr}`;
 }
 
+const CITY_COORDINATES = {
+  "pedro leopoldo": [-19.6190, -44.0430],
+  "matozinhos": [-19.5580, -44.0820],
+  "lagoa santa": [-19.6270, -43.8900],
+  "vespasiano": [-19.6910, -43.9230],
+  "raposos": [-19.9672, -43.8042],
+  "pompéu": [-19.2240, -44.9930],
+  "pompeu": [-19.2240, -44.9930],
+  "papagaios": [-19.4440, -44.7470],
+  "rio acima": [-20.0880, -43.7890],
+  "juatuba": [-19.9510, -44.3430],
+  "mateus leme": [-19.9880, -44.4280],
+  "itaúna": [-20.0750, -44.5760],
+  "itauna": [-20.0750, -44.5760],
+  "são tiago": [-20.9130, -44.5090],
+  "sao tiago": [-20.9130, -44.5090],
+  "lavras": [-21.2460, -44.9990],
+  "belo horizonte": [-19.9167, -43.9345],
+  "nova lima": [-19.9860, -43.8470],
+  "sabará": [-19.8910, -43.8060],
+  "sabara": [-19.8910, -43.8060],
+  "sete lagoas": [-19.4660, -44.2470],
+  "betim": [-19.9680, -44.1980],
+  "contagem": [-19.9320, -44.0530]
+};
+
+function getCityCoordinates(cidade) {
+  if (!cidade) return [-19.9167, -43.9345];
+  const clean = String(cidade).trim().toLowerCase();
+  if (CITY_COORDINATES[clean]) return CITY_COORDINATES[clean];
+  return [-19.9167, -43.9345];
+}
+
+function getStopCoordinates(stop, cityCenter, index, total) {
+  if (stop.lat && stop.lng && !isNaN(parseFloat(stop.lat)) && !isNaN(parseFloat(stop.lng))) {
+    return [parseFloat(stop.lat), parseFloat(stop.lng)];
+  }
+  if (stop.tempLat && stop.tempLng) {
+    return [stop.tempLat, stop.tempLng];
+  }
+  
+  // Dispersão determinística suave ao redor da malha urbana da cidade
+  const seedStr = String(stop.id || '') + String(stop.name || '') + String(stop.address || '');
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+    hash |= 0;
+  }
+  
+  const angle = (index / Math.max(total, 1)) * 2 * Math.PI + (Math.abs(hash % 60) / 60) * 0.4;
+  const distance = 0.0035 + (Math.abs(hash % 80) / 80) * 0.0075; // 350m a ~1.2km do centro urbano
+  
+  const lat = cityCenter[0] + Math.cos(angle) * distance;
+  const lng = cityCenter[1] + Math.sin(angle) * distance * 1.15;
+  
+  stop.tempLat = lat;
+  stop.tempLng = lng;
+  return [lat, lng];
+}
+
 // URL do Google Apps Script configurada pelo usuário
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxxvqn0H_hYAkwIzge6WvInNbDIGHn2fYhkC3mcLVt48BVnmjX4MSdknKNuauH1JysVfw/exec";
 
@@ -1035,7 +1098,12 @@ function changeCity(city) {
   currentDay = 1;
   renderDayBar();
   renderCards();
-  if (currentView === "mapa") renderMap();
+  if (currentView === "mapa") {
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+      renderMap();
+    }, 100);
+  }
   showToast(`Cidade: ${city}`);
 }
 
@@ -1063,7 +1131,12 @@ function selectDay(d) {
   currentDay = d;
   renderDayBar();
   renderCards();
-  if (currentView === "mapa") renderMap();
+  if (currentView === "mapa") {
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+      renderMap();
+    }, 100);
+  }
 }
 
 function switchView(view) {
@@ -1079,9 +1152,12 @@ function switchView(view) {
   } else {
     document.getElementById("cardsWrap").style.display = "none";
     document.getElementById("searchWrap").style.display = "none";
-    document.getElementById("dayMetaWrap").style.display = "none";
+    document.getElementById("dayMetaWrap").style.display = "flex";
     document.getElementById("map-view").style.display = "block";
-    setTimeout(renderMap, 100);
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+      renderMap();
+    }, 120);
   }
 }
 
@@ -1824,8 +1900,9 @@ function showToast(msg) {
 }
 
 function renderMap() {
-  const dayStops = getCityStops().filter(s => (s.day || 1) === currentDay && s.lat && s.lng);
-  
+  const dayStops = getCityStops().filter(s => (s.day || 1) === currentDay);
+  const cityCenter = getCityCoordinates(currentCity);
+
   // Ordena pela Ordem da Rota
   dayStops.sort((a, b) => {
     const oA = parseInt(a.ordem || (STATE[a.id] && STATE[a.id].ordem), 10) || 999;
@@ -1834,37 +1911,91 @@ function renderMap() {
   });
 
   if (!map) {
-    map = L.map('map-view').setView([-19.620, -44.040], 14);
+    map = L.map('map-view');
+    map.setView(cityCenter, 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
     mapLayer = L.layerGroup().addTo(map);
+  } else {
+    map.invalidateSize();
   }
 
+  if (!mapLayer) {
+    mapLayer = L.layerGroup().addTo(map);
+  }
   mapLayer.clearLayers();
-  if (dayStops.length === 0) return;
+
+  if (dayStops.length === 0) {
+    map.setView(cityCenter, 14);
+    return;
+  }
 
   const latlngs = [];
   dayStops.forEach((stop, idx) => {
     const data = getStopData(stop.id);
+    const color = STATUS_COLORS[data.status] || "#636363";
     const rawO = parseInt(data.ordem, 10);
     const visitOrder = (!isNaN(rawO) && rawO > 0 && rawO <= 50) ? rawO : (idx + 1);
     const validCode = String(data.codigo || "").match(/^[A-Z]{2,4}-\d{2}-\d{2}$/);
     const leadCode = validCode ? data.codigo : generateLeadCode(stop.cidade || currentCity, stop.day || currentDay, visitOrder);
-    latlngs.push([stop.lat, stop.lng]);
+    
+    const coords = getStopCoordinates(stop, cityCenter, idx, dayStops.length);
+    latlngs.push(coords);
 
-    const marker = L.circleMarker([stop.lat, stop.lng], {
-      radius: 8, fillColor: color, color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.95
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+
+    const markerIcon = L.divIcon({
+      className: 'custom-map-pin',
+      html: `<div style="
+        background: ${color};
+        color: #ffffff;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2.5px solid #ffffff;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+      ">${visitOrder}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
     });
+
+    const marker = L.marker(coords, { icon: markerIcon });
     marker.bindPopup(`
-      <b style="color:var(--b2u-orange);">${visitOrder}. [${leadCode}] ${stop.name}</b><br>
-      ${stop.address}<br>
-      <b>Status:</b> ${data.status}${data.temperatura ? ` · <b>${data.temperatura}</b>` : ''}
+      <div style="font-family:'Montserrat',sans-serif; min-width:210px; padding:2px;">
+        <div style="font-size:11px; font-weight:700; color:var(--b2u-orange); letter-spacing:0.05em; text-transform:uppercase;">
+          Ponto ${visitOrder} · ${leadCode}
+        </div>
+        <div style="font-size:14px; font-weight:700; color:#363636; margin:3px 0 2px;">
+          ${stop.name}
+        </div>
+        <div style="font-size:11px; color:#636363; margin-bottom:6px;">
+          ${stop.address} ${stop.bairro ? '· ' + stop.bairro : ''}
+        </div>
+        <div style="display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:${color}; color:#ffffff; margin-bottom:8px;">
+          ${data.status} ${data.temperatura ? '· ' + data.temperatura : ''}
+        </div>
+        <div style="display:flex; gap:6px; margin-top:4px;">
+          <a href="${mapsUrl}" target="_blank" style="flex:1; text-align:center; padding:6px 0; background:#ffffff; border:1px solid #ff5e0f; color:#ff5e0f; border-radius:8px; font-size:11.5px; font-weight:600; text-decoration:none;">
+            Ver no Maps
+          </a>
+          <button onclick="openQualifyModal('${stop.id}')" style="flex:1; text-align:center; padding:6px 0; background:#ff5e0f; border:none; color:#ffffff; border-radius:8px; font-size:11.5px; font-weight:600; cursor:pointer;">
+            Qualificar
+          </button>
+        </div>
+      </div>
     `);
     mapLayer.addLayer(marker);
   });
 
   if (latlngs.length > 1) {
-    mapLayer.addLayer(L.polyline(latlngs, { color: '#ff5e0f', weight: 2.5, dashArray: '5, 8' }));
-    map.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
+    mapLayer.addLayer(L.polyline(latlngs, { color: '#ff5e0f', weight: 3, dashArray: '6, 8', opacity: 0.85 }));
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [40, 40] });
   } else if (latlngs.length === 1) {
     map.setView(latlngs[0], 15);
   }
