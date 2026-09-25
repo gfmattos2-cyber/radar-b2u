@@ -1324,15 +1324,38 @@ async function syncItemToSheets(itemData) {
   }
 }
 
-async function fetchDataFromSheet() {
+let isFetchingData = false;
+
+async function fetchDataFromSheet(isRetry = false) {
   if (!CONFIG.apiUrl) {
-    alert("URL do script não configurada.");
+    showToast("URL do script não configurada.");
     return;
   }
-  showToast("Buscando dados da planilha...");
+  if (isFetchingData && !isRetry) return;
+  isFetchingData = true;
+
+  const btnHdr = document.querySelector(".btn-hdr-action");
+  if (btnHdr) btnHdr.style.opacity = "0.6";
+
+  if (!isRetry) showToast("Buscando dados da planilha...");
+
   try {
     const res = await fetch(CONFIG.apiUrl);
-    const json = await res.json();
+    const rawText = await res.text();
+    
+    // Se o Google Apps Script retornar HTML (cold start ou redirecionamento temporário do Google)
+    if (rawText.trim().startsWith("<") || rawText.includes("<!DOCTYPE")) {
+      if (!isRetry) {
+        // Tenta novamente automaticamente após 1.2 segundos
+        setTimeout(() => fetchDataFromSheet(true), 1200);
+        return;
+      } else {
+        showToast("Google temporariamente ocupado. Dados locais mantidos.");
+        return;
+      }
+    }
+
+    const json = JSON.parse(rawText);
     if (json.success && json.rows && json.rows.length > 0) {
       // PRESERVAÇÃO TOTAL DE DADOS:
       // Identifica com precisão estabelecimentos pela Chave Única (Código) ou Nome + Cidade
@@ -1364,7 +1387,11 @@ async function fetchDataFromSheet() {
       showToast("Planilha vazia ou sem novos dados");
     }
   } catch(e) {
-    alert("Erro ao sincronizar dados: " + e.message);
+    console.warn("Aviso na sincronização:", e);
+    showToast("Instabilidade no Google. Dados locais preservados.");
+  } finally {
+    isFetchingData = false;
+    if (btnHdr) btnHdr.style.opacity = "1";
   }
 }
 
