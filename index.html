@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Radar B2U · Prospecção Comercial</title>
 
+<!-- Favicons e Ícones da Aba de Navegação (Imagem 4 Oficial B2U) -->
+<link rel="icon" type="image/png" sizes="32x32" href="Imagens/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="Imagens/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="Imagens/apple-touch-icon.png">
+<link rel="shortcut icon" href="Imagens/favicon.png">
+<meta name="theme-color" content="#ff5e0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Radar B2U">
+
 <!-- Tipografia Oficial B2U (Manual da Marca): Jost (substituto oficial da Futura), Montserrat e Barlow Condensed -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -114,31 +124,45 @@
   }
 
   .brand-container {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
   }
 
-  /* Símbolo Squircle B2U com lettermark b2u */
-  .brand-squircle {
-    width: 34px; height: 34px;
-    background: rgba(255, 255, 255, 0.22);
-    border: 1.5px solid rgba(255, 255, 255, 0.45);
-    border-radius: 10px; /* ~28% do lado */
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Jost', sans-serif;
-    font-weight: 800; font-size: 15px; color: #ffffff;
-    letter-spacing: -0.05em; flex-shrink: 0;
+  /* Moldura Oficial da Logo Colorida B2U */
+  .brand-logo-frame {
+    background: #ffffff;
+    padding: 5px 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+  }
+  .brand-logo-frame:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  }
+  .brand-logo-img {
+    height: 25px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
   }
 
-  .brand-text-wrap { display: flex; flex-direction: column; }
-  .brand-title {
-    font-family: 'Jost', sans-serif;
-    font-size: 17px; font-weight: 700; line-height: 1; color: #ffffff;
-  }
   .brand-descritor {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em;
-    color: rgba(255, 255, 255, 0.9); margin-top: 2px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 3px 8px; border-radius: var(--radius-pill);
     text-transform: uppercase;
+    white-space: nowrap;
+  }
+  @media (max-width: 390px) {
+    .brand-descritor { display: none; }
   }
 
   .header-actions { display: flex; align-items: center; gap: 6px; }
@@ -193,11 +217,16 @@
 
   @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-  /* ---------- NAVEGAÇÃO ENTRE DIAS E VISÕES ---------- */
+  /* ---------- NAVEGAÇÃO ENTRE DIAS E VISITADOS NO CABEÇALHO ---------- */
+  .day-nav-wrapper {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px 0; gap: 10px;
+  }
   .day-chips-bar {
     display: flex; gap: 8px; overflow-x: auto;
-    padding: 10px 18px 0; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; align-items: center;
+    flex: 1; min-width: 0;
   }
   .day-chips-bar::-webkit-scrollbar { display: none; }
   .day-chip {
@@ -215,6 +244,19 @@
     background: #ffffff; color: var(--b2u-orange);
     border-color: #ffffff;
   }
+
+  .header-progress-tag {
+    flex-shrink: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 5px 12px; border-radius: var(--radius-pill);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: var(--b2u-ink-soft);
+    display: inline-flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+  .header-progress-tag b { color: var(--b2u-orange); font-weight: 800; }
 
   .view-tabs-bar {
     display: flex; gap: 6px; padding: 10px 18px 12px;
@@ -285,7 +327,8 @@
   .establishment-card.visited {
     background: #fdfdfd;
     border-color: var(--b2u-line);
-    opacity: 0.94;
+    border-left: 4px solid var(--b2u-orange);
+    opacity: 0.95;
   }
 
   .card-header-row {
@@ -523,11 +566,10 @@
 <header class="app-header">
   <div class="brand-bar">
     <div class="brand-container">
-      <div class="brand-squircle">b2u</div>
-      <div class="brand-text-wrap">
-        <span class="brand-title">B2U Energia</span>
-        <span class="brand-descritor">Radar de Prospecção</span>
+      <div class="brand-logo-frame" title="B2U Energia">
+        <img src="Imagens/logo-b2u-principal.png" onerror="this.onerror=null; this.src='Imagens/1.png';" alt="B2U Energia" class="brand-logo-img">
       </div>
+      <span class="brand-descritor">Radar</span>
     </div>
     <div class="header-actions">
       <button class="btn-hdr-action" onclick="fetchDataFromSheet()" title="Recarregar dados da nuvem">
@@ -555,8 +597,11 @@
     <span id="cloudText">Nuvem ativa</span>
   </div>
 
-  <!-- SELETOR DE DIAS -->
-  <div class="day-chips-bar" id="dayBar"></div>
+  <!-- SELETOR DE DIAS E CONTADOR DE VISITADOS NO CABEÇALHO -->
+  <div class="day-nav-wrapper">
+    <div class="day-chips-bar" id="dayBar"></div>
+    <div class="header-progress-tag" id="dayProgress">Visitados: <b>0/0</b></div>
+  </div>
 
   <!-- ABAS DE NAVEGAÇÃO -->
   <div class="view-tabs-bar">
@@ -579,7 +624,6 @@
 
   <div class="meta-info-row" id="dayMetaWrap">
     <div class="meta-title" id="dayLabel">Dia 1</div>
-    <div class="progress-tag" id="dayProgress">Visitados: <b>0/0</b></div>
   </div>
 
   <!-- LISTA DE CARDS -->
@@ -753,7 +797,10 @@
 <div class="modal-backdrop" id="modalConfig">
   <div class="modal-card">
     <div class="modal-top-bar">
-      <div class="modal-heading">Ajustes e integração</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img src="Imagens/favicon.png" onerror="this.onerror=null; this.src='Imagens/4.jpg.jpeg';" alt="B2U" style="width:26px; height:26px; border-radius:7px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div class="modal-heading">Ajustes e integração</div>
+      </div>
       <button class="btn-modal-close" onclick="closeModal('modalConfig')">✕</button>
     </div>
 
@@ -1004,6 +1051,15 @@ function getStopData(id) {
   }, base, dyn);
 }
 
+function isStopVisited(stopOrId) {
+  if (!stopOrId) return false;
+  const id = (typeof stopOrId === 'object' && stopOrId !== null) ? stopOrId.id : stopOrId;
+  const data = getStopData(id);
+  const statusChanged = !!(data.status && data.status !== "Não visitado");
+  const hasNote = !!(data.note && String(data.note).trim().length > 0);
+  return statusChanged || hasNote;
+}
+
 function normalizeRowsByCityAndDay(stops) {
   if (!Array.isArray(stops)) return stops;
   
@@ -1117,6 +1173,15 @@ function getDaysList() {
   return days.length > 0 ? days : [1];
 }
 
+function updateDayProgress() {
+  const progEl = document.getElementById("dayProgress");
+  if (!progEl) return;
+  const dayStops = getCityStops().filter(s => (s.day || 1) === currentDay);
+  const total = dayStops.length;
+  const visited = dayStops.filter(s => isStopVisited(s)).length;
+  progEl.innerHTML = `Visitados: <b>${visited}/${total}</b>`;
+}
+
 function renderDayBar() {
   const dayBar = document.getElementById("dayBar");
   const days = getDaysList();
@@ -1125,6 +1190,7 @@ function renderDayBar() {
   dayBar.innerHTML = days.map(d => `
     <div class="day-chip ${d === currentDay ? 'active' : ''}" onclick="selectDay(${d})">Dia ${d}</div>
   `).join("");
+  updateDayProgress();
 }
 
 function selectDay(d) {
@@ -1152,7 +1218,7 @@ function switchView(view) {
   } else {
     document.getElementById("cardsWrap").style.display = "none";
     document.getElementById("searchWrap").style.display = "none";
-    document.getElementById("dayMetaWrap").style.display = "flex";
+    document.getElementById("dayMetaWrap").style.display = "none";
     document.getElementById("map-view").style.display = "block";
     setTimeout(() => {
       if (map) map.invalidateSize();
@@ -1187,18 +1253,20 @@ function renderCards() {
   });
 
   const total = dayStops.length;
-  const visited = dayStops.filter(s => {
-    const st = (STATE[s.id] && STATE[s.id].status) || "Não visitado";
-    return st !== "Não visitado";
-  }).length;
+  const visited = dayStops.filter(s => isStopVisited(s)).length;
   
-  document.getElementById("dayLabel").innerText = currentSearchTerm ? `Busca em ${currentCity}` : `${currentCity} · Dia ${currentDay}`;
-  document.getElementById("dayProgress").innerHTML = `Visitados: <b>${visited}/${total}</b>`;
+  const dayLabelEl = document.getElementById("dayLabel");
+  if (dayLabelEl) {
+    dayLabelEl.innerText = currentSearchTerm ? `Busca em ${currentCity}` : `${currentCity} · Dia ${currentDay}`;
+  }
+  updateDayProgress();
 
   if (dayStops.length === 0) {
     wrap.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--b2u-ink-soft);">
-      Nenhum estabelecimento cadastrado para <b>${currentCity} (Dia ${currentDay})</b>.<br>
-      <small style="margin-top:6px; display:inline-block;">Toque no botão <b>+</b> para cadastrar um estabelecimento ou importe novos dados em Ajustes.</small>
+      <img src="Imagens/favicon.png" onerror="this.onerror=null; this.src='Imagens/4.jpg.jpeg';" alt="B2U" style="width:52px; height:52px; border-radius:14px; margin-bottom:12px; box-shadow:0 3px 12px rgba(255,94,15,0.18);">
+      <div style="font-weight:600; font-size:14.5px; color:var(--b2u-ink);">Nenhum estabelecimento cadastrado</div>
+      <div style="font-size:13px; margin-top:4px;">para <b>${currentCity} (Dia ${currentDay})</b>.</div>
+      <small style="margin-top:8px; display:inline-block; color:var(--b2u-ink-soft);">Toque no botão <b>+</b> para cadastrar um estabelecimento ou importe novos dados em Ajustes.</small>
     </div>`;
     return;
   }
@@ -1206,7 +1274,7 @@ function renderCards() {
   wrap.innerHTML = dayStops.map((stop, index) => {
     const data = getStopData(stop.id);
     const statusColor = STATUS_COLORS[data.status] || "#636363";
-    const isDone = data.status !== "Não visitado";
+    const isDone = isStopVisited(stop);
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
     const rawPhone = (data.phone || "").replace(/\D/g, "");
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
