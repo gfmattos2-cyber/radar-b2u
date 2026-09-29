@@ -688,20 +688,9 @@
       </div>
     </div>
 
-    <div class="form-grid-2">
-      <div class="form-field-group" style="flex:1;">
-        <label class="form-field-label">Consumo médio mensal</label>
-        <input type="text" class="form-text-input" id="q_consumo" placeholder="Ex: R$ 3.500 ou 4.000 kWh">
-      </div>
-      <div class="form-field-group" style="flex:1;">
-        <label class="form-field-label">Padrão elétrico</label>
-        <select class="form-select-input" id="q_padrao">
-          <option value="">Selecione...</option>
-          <option value="Monofásico">Monofásico (30 kWh disp.)</option>
-          <option value="Bifásico">Bifásico (50 kWh disp.)</option>
-          <option value="Trifásico">Trifásico (100 kWh disp.)</option>
-        </select>
-      </div>
+    <div class="form-field-group">
+      <label class="form-field-label">Consumo médio mensal</label>
+      <input type="text" class="form-text-input" id="q_consumo" placeholder="Ex: R$ 3.500 ou 4.000 kWh">
     </div>
 
     <!-- BLOCO DE INTELIGÊNCIA CONCORRENCIAL -->
@@ -721,6 +710,16 @@
           <input type="text" class="form-text-input" id="q_fidelidade" placeholder="Ex: Até Dez/2026">
         </div>
       </div>
+    </div>
+
+    <div class="form-field-group">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <label class="form-field-label" style="margin-bottom:0;">Coordenadas GPS (Lat, Lng)</label>
+        <button type="button" onclick="captureGPSForCurrentStop()" style="background:none; border:none; color:var(--b2u-orange); font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+          📍 Capturar GPS atual
+        </button>
+      </div>
+      <input type="text" class="form-text-input" id="q_coords" placeholder="Ex: -21.0240, -43.4134">
     </div>
 
     <div class="form-field-group">
@@ -767,6 +766,11 @@
     <div class="form-field-group">
       <label class="form-field-label">Endereço completo *</label>
       <input type="text" class="form-text-input" id="add_address" placeholder="Rua, número, bairro">
+    </div>
+
+    <div class="form-field-group">
+      <label class="form-field-label">Coordenadas GPS (opcional)</label>
+      <input type="text" class="form-text-input" id="add_coords" placeholder="Ex: -21.0240, -43.4134">
     </div>
 
     <button type="button" class="btn-action" style="width:100%; justify-content:center; margin-bottom:12px; height:40px;" onclick="fetchCurrentGPS()">
@@ -819,6 +823,10 @@
     <button type="button" class="btn-action" style="width:100%; justify-content:center; height:38px; margin-top:8px;" onclick="forcePushAllLocalStops()">
       <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       Reenviar cadastros locais à planilha
+    </button>
+    <button type="button" id="btnTriggerGeocode" class="btn-action" style="width:100%; justify-content:center; height:38px; margin-top:8px; border-color:var(--b2u-orange); color:var(--b2u-orange);" onclick="triggerCloudGeocoding()">
+      <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Gerar Coordenadas dos Endereços na Planilha
     </button>
 
     <hr style="border:0; border-top:1px solid var(--b2u-line); margin:18px 0;">
@@ -1104,9 +1112,39 @@ function prefetchMissingCityCoordinates() {
   });
 }
 
+function parseCoordinates(coordStr) {
+  if (!coordStr) return null;
+  const s = String(coordStr).trim().replace(/\[|\]/g, "");
+  if (!s) return null;
+  if (s.includes(";") && s.includes(",")) {
+    const parts = s.split(";");
+    if (parts.length >= 2) {
+      const pLat = parseFloat(parts[0].trim().replace(",", "."));
+      const pLng = parseFloat(parts[1].trim().replace(",", "."));
+      if (!isNaN(pLat) && !isNaN(pLng)) return [pLat, pLng];
+    }
+  }
+  const match = s.match(/(-?\d+(?:[.,]\d+)?)[,\s;]+(-?\d+(?:[.,]\d+)?)/);
+  if (match) {
+    const pLat = parseFloat(match[1].replace(",", "."));
+    const pLng = parseFloat(match[2].replace(",", "."));
+    if (!isNaN(pLat) && !isNaN(pLng)) return [pLat, pLng];
+  }
+  return null;
+}
+
 function getStopCoordinates(stop, cityCenter, index, total) {
   if (stop.lat && stop.lng && !isNaN(parseFloat(stop.lat)) && !isNaN(parseFloat(stop.lng))) {
     return [parseFloat(stop.lat), parseFloat(stop.lng)];
+  }
+
+  if (stop.coordenadas) {
+    const parsed = parseCoordinates(stop.coordenadas);
+    if (parsed) {
+      stop.lat = parsed[0];
+      stop.lng = parsed[1];
+      return parsed;
+    }
   }
 
   const centerKey = `${cityCenter[0].toFixed(4)},${cityCenter[1].toFixed(4)}`;
@@ -1193,6 +1231,9 @@ function getStopData(id) {
     ordem: base.ordem || dyn.ordem || null,
     status: "Não visitado",
     temperatura: "",
+    coordenadas: base.coordenadas || dyn.coordenadas || (base.lat && base.lng ? `${base.lat}, ${base.lng}` : ""),
+    lat: base.lat || dyn.lat || "",
+    lng: base.lng || dyn.lng || "",
     date_first: base.date_first || dyn.date_first || "",
     date: base.date || dyn.date || "",
     note: "",
@@ -1200,7 +1241,6 @@ function getStopData(id) {
     phone: base.phone || "",
     email: "",
     consumo: "",
-    padrao: "",
     concorrente: "",
     desconto_concorrente: "",
     fidelidade: "",
@@ -1444,7 +1484,14 @@ function renderCards() {
     const data = getStopData(stop.id);
     const statusColor = STATUS_COLORS[data.status] || "#636363";
     const isDone = isStopVisited(stop);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+    
+    const cityCenter = getCityCoordinates(stop.cidade || currentCity);
+    const coords = getStopCoordinates(stop, cityCenter, index, dayStops.length);
+    const hasExactCoords = !!((stop.lat && stop.lng) || stop.coordenadas || (data.lat && data.lng) || data.coordenadas);
+    const mapsUrl = hasExactCoords && coords && coords[0] && coords[1]
+      ? `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+
     const rawPhone = (data.phone || "").replace(/\D/g, "");
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
     const rawO = parseInt(data.ordem, 10);
@@ -1474,6 +1521,7 @@ function renderCards() {
 
         <div class="card-address-text">
           ${stop.address}
+          ${hasExactCoords ? `<span title="Localização com coordenadas GPS exatas" style="display:inline-flex; align-items:center; gap:2px; font-size:10px; font-weight:700; color:#1b5e20; background:#e8f5e9; border:1px solid #c8e6c9; border-radius:6px; padding:1px 5px; margin-left:6px;">📍 GPS</span>` : ''}
           ${stop.far ? `<span class="badge-distance">${stop.bairro}</span>` : (stop.bairro ? ` · <b>${stop.bairro}</b>` : '')}
         </div>
 
@@ -1728,6 +1776,40 @@ async function forcePushAllLocalStops() {
   showToast("Todos os cadastros locais foram reenviados com sucesso!");
 }
 
+async function triggerCloudGeocoding() {
+  if (!CONFIG.apiUrl) return alert("URL do Google Apps Script não configurada.");
+  const btn = document.getElementById("btnTriggerGeocode");
+  const origHtml = btn ? btn.innerHTML : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Geocodificando na nuvem...`;
+  }
+  showToast("Iniciando geocodificação no Google Sheets...");
+
+  try {
+    const res = await fetch(`${CONFIG.apiUrl}?action=geocode&limit=80`);
+    const json = await res.json();
+    if (json.sucesso) {
+      if (json.processados > 0) {
+        showToast(`✅ ${json.processados} coordenadas geradas na planilha!`);
+        setTimeout(() => fetchDataFromSheet(), 1200);
+      } else {
+        showToast("Todos os endereços da planilha já possuem coordenadas!");
+      }
+    } else {
+      alert("Aviso: " + (json.erro || "Falha na geocodificação"));
+    }
+  } catch (err) {
+    console.warn("Erro ao disparar geocodificação:", err);
+    showToast("Falha ao comunicar com a planilha.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
 let originalStatusInModal = "";
 
 function clearInputError(inputEl) {
@@ -1873,13 +1955,30 @@ function openQualifyModal(id) {
   document.getElementById("q_phone").value = data.phone || "";
   document.getElementById("q_email").value = data.email || "";
   document.getElementById("q_consumo").value = data.consumo || "";
-  document.getElementById("q_padrao").value = data.padrao || "";
   document.getElementById("q_concorrente").value = data.concorrente || "";
   document.getElementById("q_desconto_concorrente").value = data.desconto_concorrente || "";
   document.getElementById("q_fidelidade").value = data.fidelidade || "";
   document.getElementById("q_note").value = data.note || "";
+  
+  const coordVal = data.coordenadas || (data.lat && data.lng ? `${data.lat}, ${data.lng}` : "");
+  const qCoordsEl = document.getElementById("q_coords");
+  if (qCoordsEl) qCoordsEl.value = coordVal;
 
   document.getElementById("modalQualify").style.display = "flex";
+}
+
+function captureGPSForCurrentStop() {
+  if (!navigator.geolocation) return alert("Geolocalização não suportada neste dispositivo.");
+  showToast("Obtendo sinal GPS...");
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lng = pos.coords.longitude.toFixed(6);
+    const input = document.getElementById("q_coords");
+    if (input) input.value = `${lat}, ${lng}`;
+    showToast(`GPS capturado: ${lat}, ${lng}`);
+  }, err => {
+    alert("Não foi possível obter o sinal GPS. Verifique as permissões de localização do navegador.");
+  }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
 function saveQualifyData() {
@@ -1906,12 +2005,30 @@ function saveQualifyData() {
   STATE[currentEditingId].phone = document.getElementById("q_phone").value.trim();
   STATE[currentEditingId].email = document.getElementById("q_email").value.trim();
   STATE[currentEditingId].consumo = document.getElementById("q_consumo").value.trim();
-  STATE[currentEditingId].padrao = document.getElementById("q_padrao").value;
   STATE[currentEditingId].concorrente = document.getElementById("q_concorrente").value.trim();
   STATE[currentEditingId].desconto_concorrente = document.getElementById("q_desconto_concorrente").value.trim();
   STATE[currentEditingId].fidelidade = document.getElementById("q_fidelidade").value.trim();
   STATE[currentEditingId].note = document.getElementById("q_note").value.trim();
   STATE[currentEditingId].date = dateStr;
+
+  const qCoordsEl = document.getElementById("q_coords");
+  const coordsStr = qCoordsEl ? qCoordsEl.value.trim() : "";
+  STATE[currentEditingId].coordenadas = coordsStr;
+  if (coordsStr) {
+    const parsed = parseCoordinates(coordsStr);
+    if (parsed) {
+      STATE[currentEditingId].lat = parsed[0];
+      STATE[currentEditingId].lng = parsed[1];
+      const stopObj = STOPS.find(s => s.id === currentEditingId);
+      if (stopObj) {
+        stopObj.coordenadas = coordsStr;
+        stopObj.lat = parsed[0];
+        stopObj.lng = parsed[1];
+        delete stopObj.tempLat;
+        delete stopObj.tempLng;
+      }
+    }
+  }
 
   if (STATE[currentEditingId].concorrente && chosenStatus === "Não visitado") {
     STATE[currentEditingId].status = "Já com desconto - aberto a migrar";
@@ -1945,6 +2062,11 @@ function openAddModal() {
   document.getElementById("add_bairro").value = "";
   document.getElementById("add_phone").value = "";
   document.getElementById("add_note").value = "";
+  const coordsInput = document.getElementById("add_coords");
+  if (coordsInput) coordsInput.value = "";
+  window.tempNewLat = null;
+  window.tempNewLng = null;
+
   document.getElementById("modalAdd").style.display = "flex";
 }
 
@@ -1954,9 +2076,15 @@ function fetchCurrentGPS() {
   navigator.geolocation.getCurrentPosition(pos => {
     window.tempNewLat = pos.coords.latitude;
     window.tempNewLng = pos.coords.longitude;
-    document.getElementById("add_address").value = `Coletado via GPS (${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)})`;
-    showToast("Localização capturada");
-  }, err => alert("Não foi possível obter a localização. Digite o endereço."));
+    const coordsStr = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+    const coordsInput = document.getElementById("add_coords");
+    if (coordsInput) coordsInput.value = coordsStr;
+    const addrInput = document.getElementById("add_address");
+    if (addrInput && !addrInput.value) {
+      addrInput.value = `Coletado via GPS (${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)})`;
+    }
+    showToast("Localização GPS capturada");
+  }, err => alert("Não foi possível obter a localização. Digite o endereço."), { enableHighAccuracy: true, timeout: 10000 });
 }
 
 function saveNewEstablishment() {
@@ -1986,6 +2114,17 @@ function saveNewEstablishment() {
   const nextOrdem = maxOrdem + 1;
   const leadCode = generateLeadCode(chosenCity, day, nextOrdem);
 
+  const coordsInput = document.getElementById("add_coords") ? document.getElementById("add_coords").value.trim() : "";
+  let lat = window.tempNewLat || null;
+  let lng = window.tempNewLng || null;
+  if (coordsInput) {
+    const parsed = parseCoordinates(coordsInput);
+    if (parsed) {
+      lat = parsed[0];
+      lng = parsed[1];
+    }
+  }
+
   const newId = "manual-" + new Date().getTime();
   const newStop = {
     id: newId,
@@ -1996,10 +2135,11 @@ function saveNewEstablishment() {
     name: name,
     segment: segment || "Comércio",
     address: address,
+    coordenadas: coordsInput || (lat && lng ? `${lat}, ${lng}` : ""),
     bairro: bairro || "Local",
     phone: phone || "",
-    lat: window.tempNewLat || null,
-    lng: window.tempNewLng || null
+    lat: lat,
+    lng: lng
   };
 
   STOPS.push(newStop);
@@ -2015,6 +2155,11 @@ function saveNewEstablishment() {
   STATE[newId].cidade = chosenCity;
   STATE[newId].date_first = dateStr;
   STATE[newId].date = dateStr;
+  STATE[newId].coordenadas = newStop.coordenadas;
+  if (lat && lng) {
+    STATE[newId].lat = lat;
+    STATE[newId].lng = lng;
+  }
   if (note) STATE[newId].note = note;
   saveState(STATE);
 
@@ -2080,7 +2225,6 @@ function importTSVForCity() {
       segment = cols[8] || "Comércio";
       status = cols[9] || "Não visitado";
       consumo = cols[10] || "";
-      padrao = cols[11] || "";
       concorrente = cols[12] || "";
       descConc = cols[13] || "";
       fidelidade = cols[14] || "";
@@ -2109,11 +2253,10 @@ function importTSVForCity() {
       bairro: bairro
     });
 
-    if (note || consumo || padrao || concorrente) {
+    if (note || consumo || concorrente) {
       STATE[stopId] = {
         status: status || "Não visitado",
         consumo: consumo || "",
-        padrao: padrao || "",
         concorrente: concorrente || "",
         desconto_concorrente: descConc || "",
         fidelidade: fidelidade || "",
@@ -2205,7 +2348,10 @@ function renderMap() {
     const coords = getStopCoordinates(stop, cityCenter, idx, dayStops.length);
     latlngs.push(coords);
 
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+    const hasExactCoords = !!((stop.lat && stop.lng) || stop.coordenadas || (data.lat && data.lng) || data.coordenadas);
+    const mapsUrl = hasExactCoords && coords && coords[0] && coords[1]
+      ? `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
 
     const markerIcon = L.divIcon({
       className: 'custom-map-pin',
@@ -2240,6 +2386,7 @@ function renderMap() {
         </div>
         <div style="font-size:11px; color:#636363; margin-bottom:6px;">
           ${stop.address} ${stop.bairro ? '· ' + stop.bairro : ''}
+          ${hasExactCoords ? `<div style="color:#1b5e20; font-size:10.5px; font-weight:700; margin-top:3px;">📍 ${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div>` : ''}
         </div>
         <div style="display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:${color}; color:#ffffff; margin-bottom:8px;">
           ${data.status} ${data.temperatura ? '· ' + data.temperatura : ''}
