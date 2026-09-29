@@ -884,31 +884,46 @@ const DEFAULT_STOPS = [
   {id:"pl-10", codigo:"PL-01-10", day:1, ordem:10, cidade:"Pedro Leopoldo", name:"Padaria Jaques", segment:"Padaria", address:"R. Comendador Antônio Alves, 462 - Centro", bairro:"Centro", phone:"+55 31 3661-1738", lat:-19.6196186, lng:-44.0429894}
 ];
 
+function normalizeCityKey(cidade) {
+  if (!cidade) return "";
+  return String(cidade)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ");
+}
+
 const CITY_ACRONYMS = {
   "pedro leopoldo": "PL",
   "matozinhos": "MAT",
   "lagoa santa": "LS",
   "vespasiano": "VES",
   "raposos": "RAP",
-  "pompéu": "POM",
   "pompeu": "POM",
   "papagaios": "PAP",
   "rio acima": "RA",
   "juatuba": "JUA",
   "mateus leme": "ML",
-  "itaúna": "ITA",
   "itauna": "ITA",
-  "são tiago": "ST",
   "sao tiago": "ST",
-  "lavras": "LAV"
+  "lavras": "LAV",
+  "alto rio doce": "ARD",
+  "claudio": "CLA",
+  "carmo da mata": "CDM",
+  "itapecerica": "ITP",
+  "itaverava": "ITV",
+  "dores do turvo": "DDT",
+  "desterro do melo": "DDM"
 };
 
 function getCityAcronym(cidade) {
   if (!cidade) return "B2U";
-  const clean = String(cidade).trim().toLowerCase();
-  if (CITY_ACRONYMS[clean]) return CITY_ACRONYMS[clean];
-  const normalized = clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
-  return (normalized.slice(0, 3) || "B2U").toUpperCase();
+  const norm = normalizeCityKey(cidade);
+  if (CITY_ACRONYMS[norm]) return CITY_ACRONYMS[norm];
+  const clean = norm.replace(/[^a-z]/g, "");
+  return (clean.slice(0, 3) || "B2U").toUpperCase();
 }
 
 function generateLeadCode(cidade, day, ordem) {
@@ -919,43 +934,183 @@ function generateLeadCode(cidade, day, ordem) {
 }
 
 const CITY_COORDINATES = {
+  // Cidades em operação na planilha
+  "alto rio doce": [-21.0240, -43.4134],
+  "claudio": [-20.4032, -44.7618],
+  "carmo da mata": [-20.5583, -44.8704],
+  "itapecerica": [-20.4728, -45.1256],
+  "itaverava": [-20.6763, -43.6099],
+  "dores do turvo": [-20.9753, -43.1889],
+  "desterro do melo": [-21.1460, -43.5183],
   "pedro leopoldo": [-19.6190, -44.0430],
   "matozinhos": [-19.5580, -44.0820],
   "lagoa santa": [-19.6270, -43.8900],
   "vespasiano": [-19.6910, -43.9230],
   "raposos": [-19.9672, -43.8042],
-  "pompéu": [-19.2240, -44.9930],
   "pompeu": [-19.2240, -44.9930],
   "papagaios": [-19.4440, -44.7470],
   "rio acima": [-20.0880, -43.7890],
   "juatuba": [-19.9510, -44.3430],
   "mateus leme": [-19.9880, -44.4280],
-  "itaúna": [-20.0750, -44.5760],
   "itauna": [-20.0750, -44.5760],
-  "são tiago": [-20.9130, -44.5090],
   "sao tiago": [-20.9130, -44.5090],
   "lavras": [-21.2460, -44.9990],
   "belo horizonte": [-19.9167, -43.9345],
   "nova lima": [-19.9860, -43.8470],
-  "sabará": [-19.8910, -43.8060],
   "sabara": [-19.8910, -43.8060],
   "sete lagoas": [-19.4660, -44.2470],
   "betim": [-19.9680, -44.1980],
-  "contagem": [-19.9320, -44.0530]
+  "contagem": [-19.9320, -44.0530],
+
+  // Outros polos e cidades de Minas Gerais
+  "barbacena": [-21.2255, -43.7735],
+  "barroso": [-21.1871, -43.9771],
+  "dores de campos": [-21.1072, -44.0225],
+  "prados": [-21.0573, -44.0789],
+  "tiradentes": [-21.1105, -44.1743],
+  "sao joao del rei": [-21.1336, -44.2588],
+  "resende costa": [-20.9219, -44.2378],
+  "oliveira": [-20.6972, -44.8274],
+  "divinopolis": [-20.1598, -44.8739],
+  "nova serrana": [-19.8758, -44.9842],
+  "bom despacho": [-19.7375, -45.2517],
+  "formiga": [-20.4648, -45.4267],
+  "campo belo": [-20.8975, -45.2772],
+  "cipotanea": [-20.9053, -43.3656],
+  "bras pires": [-20.8483, -43.2431],
+  "senhora dos remedios": [-21.0281, -43.5828],
+  "santos dumont": [-21.4561, -43.5523],
+  "vicosa": [-20.7539, -42.8816],
+  "ponte nova": [-20.4164, -42.9088],
+  "conselheiro lafaiete": [-20.6596, -43.7857],
+  "congonhas": [-20.5015, -43.8565],
+  "ouro branco": [-20.5260, -43.6630],
+  "carandai": [-20.9524, -43.8044],
+  "juiz de fora": [-21.7587, -43.3496],
+  "uba": [-21.1206, -42.9431],
+  "muriae": [-21.1306, -42.3664],
+  "ouro preto": [-20.3856, -43.5035],
+  "mariana": [-20.3780, -43.4161],
+  "curvelo": [-18.7564, -44.4308],
+  "ipatinga": [-19.4682, -42.5367],
+  "governador valadares": [-18.8573, -41.9491],
+  "uberlandia": [-18.9186, -48.2772],
+  "uberaba": [-19.7472, -47.9392],
+  "montes claros": [-16.7282, -43.8578],
+  "pocos de caldas": [-21.7877, -46.5614],
+  "pouso alegre": [-22.2300, -45.9364],
+  "varginha": [-21.5515, -45.4303],
+  "itajuba": [-22.4261, -45.4529],
+  "passos": [-20.7188, -46.6097],
+  "araxa": [-19.5933, -46.9406],
+  "patos de minas": [-18.5789, -46.5181],
+  "diamantina": [-18.2436, -43.6025],
+  "itabira": [-19.6190, -43.2268],
+  "joao monlevade": [-19.8119, -43.1736],
+  "itabirito": [-20.2522, -43.8042],
+  "santa luzia": [-19.7697, -43.8514],
+  "ibirite": [-20.0219, -44.0589],
+  "ribeirao das neves": [-19.7669, -44.0869],
+  "sarzedo": [-20.0356, -44.1436],
+  "brumadinho": [-20.1436, -44.1989],
+  "igarape": [-20.0756, -44.3033],
+  "sao joaquim de bicas": [-20.0558, -44.2750]
 };
+
+const LS_GEO_CACHE_KEY = "radar_b2u_geo_cache_v1";
+const pendingGeoLookups = new Set();
+
+function getCachedCityCoordinates(cidade) {
+  const norm = normalizeCityKey(cidade);
+  if (!norm) return null;
+  if (CITY_COORDINATES[norm]) return CITY_COORDINATES[norm];
+  try {
+    const custom = JSON.parse(localStorage.getItem(LS_GEO_CACHE_KEY) || "{}");
+    if (custom[norm] && Array.isArray(custom[norm]) && custom[norm].length === 2) {
+      return custom[norm];
+    }
+  } catch(e) {}
+  return null;
+}
 
 function getCityCoordinates(cidade) {
   if (!cidade) return [-19.9167, -43.9345];
-  const clean = String(cidade).trim().toLowerCase();
-  if (CITY_COORDINATES[clean]) return CITY_COORDINATES[clean];
+  const cached = getCachedCityCoordinates(cidade);
+  if (cached) return cached;
+  // Dispara busca assíncrona automática para cidades novas não mapeadas
+  fetchCityCoordinatesOnline(cidade);
   return [-19.9167, -43.9345];
+}
+
+async function fetchCityCoordinatesOnline(cidade) {
+  const norm = normalizeCityKey(cidade);
+  if (!norm || CITY_COORDINATES[norm] || pendingGeoLookups.has(norm)) return;
+  
+  try {
+    const custom = JSON.parse(localStorage.getItem(LS_GEO_CACHE_KEY) || "{}");
+    if (custom[norm]) return custom[norm];
+  } catch(e) {}
+
+  pendingGeoLookups.add(norm);
+  try {
+    const query = encodeURIComponent(`${cidade}, Minas Gerais, Brasil`);
+    const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`, {
+      headers: { "Accept-Language": "pt-BR" }
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const coords = [lat, lng];
+          let custom = {};
+          try {
+            custom = JSON.parse(localStorage.getItem(LS_GEO_CACHE_KEY) || "{}");
+          } catch(e) {}
+          custom[norm] = coords;
+          localStorage.setItem(LS_GEO_CACHE_KEY, JSON.stringify(custom));
+          
+          // Invalida cache de posições dos estabelecimentos dessa cidade para recalculá-las
+          STOPS.forEach(s => {
+            if (normalizeCityKey(s.cidade) === norm) {
+              delete s.tempLat;
+              delete s.tempLng;
+              delete s._cachedCenter;
+            }
+          });
+
+          // Se o mapa estiver aberto e a cidade selecionada for essa, re-renderiza na posição correta
+          if (currentView === "mapa" && normalizeCityKey(currentCity) === norm) {
+            renderMap();
+          }
+          return coords;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Erro ao buscar coordenadas para:", cidade, err);
+  } finally {
+    pendingGeoLookups.delete(norm);
+  }
+}
+
+function prefetchMissingCityCoordinates() {
+  const cities = Array.from(new Set(STOPS.map(s => s.cidade).filter(Boolean)));
+  cities.forEach(c => {
+    if (!getCachedCityCoordinates(c)) {
+      fetchCityCoordinatesOnline(c);
+    }
+  });
 }
 
 function getStopCoordinates(stop, cityCenter, index, total) {
   if (stop.lat && stop.lng && !isNaN(parseFloat(stop.lat)) && !isNaN(parseFloat(stop.lng))) {
     return [parseFloat(stop.lat), parseFloat(stop.lng)];
   }
-  if (stop.tempLat && stop.tempLng) {
+
+  const centerKey = `${cityCenter[0].toFixed(4)},${cityCenter[1].toFixed(4)}`;
+  if (stop.tempLat && stop.tempLng && stop._cachedCenter === centerKey) {
     return [stop.tempLat, stop.tempLng];
   }
   
@@ -975,6 +1130,7 @@ function getStopCoordinates(stop, cityCenter, index, total) {
   
   stop.tempLat = lat;
   stop.tempLng = lng;
+  stop._cachedCenter = centerKey;
   return [lat, lng];
 }
 
@@ -1116,12 +1272,20 @@ function normalizeRowsByCityAndDay(stops) {
 }
 
 function initApp() {
+  // Limpa coordenadas temporárias antigas geradas antes do mapeamento preciso
+  STOPS.forEach(s => {
+    if (s.tempLat && !s._cachedCenter) {
+      delete s.tempLat;
+      delete s.tempLng;
+    }
+  });
   STOPS = normalizeRowsByCityAndDay(STOPS);
   saveStops(STOPS);
   populateCityDropdown();
   renderDayBar();
   renderCards();
   updateSyncStatusHeader();
+  prefetchMissingCityCoordinates();
   setTimeout(flushPendingSyncQueue, 1500);
 }
 window.addEventListener("online", flushPendingSyncQueue);
@@ -1156,6 +1320,9 @@ function changeCity(city) {
   currentDay = 1;
   renderDayBar();
   renderCards();
+  if (!getCachedCityCoordinates(city)) {
+    fetchCityCoordinatesOnline(city);
+  }
   if (currentView === "mapa") {
     setTimeout(() => {
       if (map) map.invalidateSize();
@@ -1522,6 +1689,13 @@ async function fetchDataFromSheet(isRetry = false) {
       populateCityDropdown();
       renderDayBar();
       renderCards();
+      prefetchMissingCityCoordinates();
+      if (currentView === "mapa") {
+        setTimeout(() => {
+          if (map) map.invalidateSize();
+          renderMap();
+        }, 100);
+      }
       
       if (pendingLocalStops.length > 0) {
         showToast(`${json.rows.length} da planilha + ${pendingLocalStops.length} pendentes reenviando...`);
