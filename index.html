@@ -1488,9 +1488,7 @@ function renderCards() {
     const cityCenter = getCityCoordinates(stop.cidade || currentCity);
     const coords = getStopCoordinates(stop, cityCenter, index, dayStops.length);
     const hasExactCoords = !!((stop.lat && stop.lng) || stop.coordenadas || (data.lat && data.lng) || data.coordenadas);
-    const mapsUrl = hasExactCoords && coords && coords[0] && coords[1]
-      ? `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
 
     const rawPhone = (data.phone || "").replace(/\D/g, "");
     const waUrl = rawPhone ? `https://wa.me/55${rawPhone}` : null;
@@ -2349,9 +2347,7 @@ function renderMap() {
     latlngs.push(coords);
 
     const hasExactCoords = !!((stop.lat && stop.lng) || stop.coordenadas || (data.lat && data.lng) || data.coordenadas);
-    const mapsUrl = hasExactCoords && coords && coords[0] && coords[1]
-      ? `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' ' + stop.address + ' ' + currentCity)}`;
 
     const markerIcon = L.divIcon({
       className: 'custom-map-pin',
