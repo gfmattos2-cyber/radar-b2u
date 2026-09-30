@@ -630,12 +630,21 @@
     border: 1px solid var(--b2u-line);
     box-shadow: var(--shadow-sm);
     gap: 10px;
+    flex-wrap: nowrap;
   }
 
   .proposta-toolbar-left {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
+  }
+
+  .proposta-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   .proposta-toolbar-title {
@@ -646,6 +655,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
   }
 
   .proposta-toolbar-badge {
@@ -658,6 +668,77 @@
     border-radius: 6px;
     text-transform: uppercase;
     letter-spacing: .05em;
+  }
+
+  .btn-text-short, .title-text-short {
+    display: none;
+  }
+  .btn-text-full, .title-text-full {
+    display: inline;
+  }
+
+  @media (max-width: 680px) {
+    .btn-text-full, .title-text-full {
+      display: none !important;
+    }
+    .btn-text-short, .title-text-short {
+      display: inline !important;
+    }
+    .proposta-toolbar {
+      padding: 6px 8px;
+      gap: 6px;
+    }
+    .proposta-toolbar-left {
+      gap: 5px;
+    }
+    .proposta-toolbar-right {
+      gap: 5px !important;
+    }
+    .proposta-toolbar .btn-action {
+      height: 32px;
+      padding: 0 7px;
+      font-size: 11px;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .proposta-toolbar .btn-action svg {
+      width: 13px;
+      height: 13px;
+    }
+    .proposta-toolbar-title {
+      font-size: 12px;
+      gap: 4px;
+    }
+    .proposta-toolbar-badge {
+      font-size: 9px;
+      padding: 1px 4px;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .proposta-toolbar {
+      padding: 4px 6px;
+      gap: 4px;
+    }
+    .proposta-toolbar-left {
+      gap: 4px;
+    }
+    .proposta-toolbar-right {
+      gap: 4px !important;
+    }
+    .proposta-toolbar .btn-action {
+      height: 29px;
+      padding: 0 5px;
+      font-size: 10px;
+      gap: 3px;
+    }
+    .proposta-toolbar-title {
+      font-size: 11px;
+    }
+    .proposta-toolbar-badge {
+      display: none !important;
+    }
   }
 
   .proposta-iframe-wrap {
@@ -693,6 +774,10 @@
   }
 
   /* Estilos de Impressão (Geração de PDF limpo sem barras do Radar) */
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
   @media print {
     header.app-header,
     .city-bar,
@@ -708,14 +793,34 @@
     .proposta-toolbar {
       display: none !important;
     }
-    body, main.main-content, #proposta-view, .proposta-iframe-wrap {
+    body, main.main-content, #proposta-view {
       margin: 0 !important;
       padding: 0 !important;
       border: none !important;
       box-shadow: none !important;
       background: #ffffff !important;
       width: 100% !important;
-      height: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    .proposta-iframe-wrap {
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      background: #ffffff !important;
+      width: 210mm !important;
+      max-width: 210mm !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+    }
+    .proposta-iframe-wrap iframe {
+      width: 210mm !important;
+      max-width: 210mm !important;
+      height: 590mm !important;
+      border: none !important;
+      display: block !important;
     }
   }
 </style>
@@ -799,19 +904,29 @@
   <div id="proposta-view">
     <div class="proposta-toolbar">
       <div class="proposta-toolbar-left">
-        <button class="btn-action" onclick="switchView('rota')">
+        <button class="btn-action btn-back-radar" onclick="switchView('rota')" title="Voltar para a Rota de Visitas">
           <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
-          Voltar ao Radar
+          <span class="btn-text-full">Voltar ao Radar</span>
+          <span class="btn-text-short">Voltar</span>
         </button>
         <span class="proposta-toolbar-title">
-          Gerador de Propostas
+          <span class="title-text-full">Gerador de Propostas</span>
+          <span class="title-text-short">Proposta</span>
           <span class="proposta-toolbar-badge">B2U</span>
         </span>
       </div>
-      <a href="Proposta B2U.html" target="_blank" class="btn-action" title="Abrir proposta em tela cheia / nova aba">
-        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Tela cheia ↗
-      </a>
+      <div class="proposta-toolbar-right">
+        <button class="btn-action btn-print-radar" onclick="printPropostaFromRadar()" title="Imprimir / Salvar PDF em 2 páginas A4" style="background:var(--b2u-orange); color:#ffffff; font-weight:700; border-color:var(--b2u-orange); box-shadow:var(--shadow-glow);">
+          <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          <span class="btn-text-full">Imprimir / PDF</span>
+          <span class="btn-text-short">PDF</span>
+        </button>
+        <a href="Proposta B2U.html" target="_blank" class="btn-action" title="Abrir proposta em tela cheia / nova aba">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <span class="btn-text-full">Tela cheia ↗</span>
+          <span class="btn-text-short">Expandir</span>
+        </a>
+      </div>
     </div>
     <div class="proposta-iframe-wrap">
       <iframe id="frameProposta" src="about:blank" title="Gerador de Propostas B2U"></iframe>
@@ -1665,9 +1780,19 @@ function switchView(view) {
     if (cityBar) cityBar.style.display = "none";
     if (dayNav) dayNav.style.display = "none";
 
+    // Garantir que a tarifa padrão seja 1,14 no estado persistido
+    try {
+      const KEY = 'b2u-proposta-editavel-v2';
+      const cur = JSON.parse(localStorage.getItem(KEY) || '{}');
+      if (!cur.tariff || cur.tariff === '0,9474') {
+        cur.tariff = '1,14';
+        localStorage.setItem(KEY, JSON.stringify(cur));
+      }
+    } catch(e) {}
+
     const iframe = document.getElementById("frameProposta");
     if (iframe && (!iframe.src || iframe.src === "about:blank" || iframe.src.endsWith("about:blank"))) {
-      iframe.src = "Proposta B2U.html";
+      iframe.src = "Proposta B2U.html?t=" + new Date().getTime();
     }
   }
 }
@@ -1678,7 +1803,7 @@ function openPropostaForLead(stopId) {
     return;
   }
   const stop = STOPS.find(s => s.id === stopId);
-  const data = STATE[stopId] || {};
+  const data = getStopData(stopId);
 
   try {
     const KEY = 'b2u-proposta-editavel-v2';
@@ -1687,29 +1812,40 @@ function openPropostaForLead(stopId) {
       current = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch(e) {}
 
+    // Sempre definir a tarifa padrão como 1,14
+    current.tariff = '1,14';
+
     // Titular: Nome do estabelecimento
     if (stop && stop.name) {
       current.holder = stop.name.toUpperCase();
     }
 
-    // Se houver consultor responsável configurado
-    if (CONFIG.responsavel) {
-      current.sellerName = CONFIG.responsavel;
-    }
+    // Consultor responsável
+    current.sellerName = CONFIG.sellerName || 'Gabriel Mattos';
 
     // Consumo: se o lead tiver consumo em kWh ou R$
-    const rawConsumo = data.consumo || (stop && stop.consumo) || "";
+    const rawConsumo = String(data.consumo || (stop && stop.consumo) || "").trim();
     if (rawConsumo) {
-      const kwhMatch = rawConsumo.match(/(\d+[\d.,]*)\s*kwh/i);
+      const kwhMatch = rawConsumo.match(/(\d+(?:[.,]\d+)?)\s*kwh/i);
+      const isReais = /r\$|reais/i.test(rawConsumo);
       const numMatch = rawConsumo.match(/(\d+[\d.,]*)/);
+
       if (kwhMatch) {
-        current.consumptionKwh = kwhMatch[1].replace(/\./g, '');
-      } else if (numMatch) {
-        const val = parseFloat(numMatch[1].replace(/\./g, '').replace(',', '.'));
-        if (rawConsumo.includes('R$') || val > 1000) {
-          current.consumptionKwh = Math.round(val / 0.95).toString();
-        } else if (!isNaN(val) && val > 0) {
+        const val = parseFloat(kwhMatch[1].replace(/\./g, '').replace(',', '.'));
+        if (!isNaN(val) && val > 0) {
           current.consumptionKwh = Math.round(val).toString();
+        }
+      } else if (numMatch) {
+        const cleanNum = numMatch[1].replace(/\.(?=\d{3})/g, '').replace(',', '.');
+        const val = parseFloat(cleanNum);
+        if (!isNaN(val) && val > 0) {
+          if (isReais || val > 1200 || (cleanNum.includes('.') && cleanNum.split('.')[1].length === 2 && val > 150)) {
+            // Valor em Reais (R$) -> converter para kWh dividindo pela tarifa padrão 1,14
+            current.consumptionKwh = Math.max(1, Math.round(val / 1.14)).toString();
+          } else {
+            // Valor já em kWh
+            current.consumptionKwh = Math.round(val).toString();
+          }
         }
       }
     }
@@ -1720,7 +1856,7 @@ function openPropostaForLead(stopId) {
       if (dMatch) {
         const currentDisc = parseFloat(dMatch[1].replace(',', '.'));
         if (currentDisc && currentDisc > 0) {
-          current.discountPct = Math.min(22, Math.max(15, currentDisc + 2)).toString();
+          current.discountPct = Math.min(22, Math.max(15, Math.round(currentDisc + 2))).toString();
         }
       }
     }
@@ -1736,10 +1872,27 @@ function openPropostaForLead(stopId) {
   // Abre a visualização da proposta
   switchView('proposta');
 
-  // Atualiza o iframe com o novo estado se já estiver carregado
+  // Atualiza o iframe com o novo estado recarregando com timestamp
   const iframe = document.getElementById("frameProposta");
   if (iframe) {
     iframe.src = "Proposta B2U.html?t=" + new Date().getTime();
+  }
+}
+
+function printPropostaFromRadar() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    window.open("Proposta B2U.html?autoPrint=1", "_blank");
+  } else {
+    try {
+      const iframe = document.getElementById("frameProposta");
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        return;
+      }
+    } catch(e) {}
+    window.open("Proposta B2U.html?autoPrint=1", "_blank");
   }
 }
 
@@ -1834,6 +1987,13 @@ function renderCards() {
           <div class="competitor-pill">
             <svg class="icon-svg" style="width:13px;height:13px;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             Concorrente: <b>${data.concorrente}</b> ${data.desconto_concorrente ? `(${data.desconto_concorrente})` : ''}
+          </div>
+        ` : ''}
+
+        ${data.consumo ? `
+          <div class="consumo-pill" style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:var(--b2u-orange-press); background:var(--b2u-orange-50); border:1px solid var(--b2u-orange-100); border-radius:6px; padding:2px 8px; margin-top:5px;">
+            <svg class="icon-svg" style="width:12px;height:12px;color:var(--b2u-orange);" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Consumo cadastrado: <b>${data.consumo}</b>
           </div>
         ` : ''}
 
