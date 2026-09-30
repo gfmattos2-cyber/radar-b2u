@@ -557,6 +557,92 @@
     transition: transform 220ms ease-out;
   }
   .floating-add-btn:active { transform: scale(0.95); }
+
+  /* ---------- GERADOR DE PROPOSTAS B2U ---------- */
+  body.view-proposta-active main.main-content {
+    max-width: 1440px;
+    padding: 12px 14px 24px;
+  }
+
+  #proposta-view {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    animation: fadeIn 180ms ease-out;
+  }
+
+  .proposta-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    padding: 8px 14px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--b2u-line);
+    box-shadow: var(--shadow-sm);
+    gap: 10px;
+  }
+
+  .proposta-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .proposta-toolbar-title {
+    font-family: 'Futura', 'Jost', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--b2u-ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .proposta-toolbar-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    background: var(--b2u-orange-50);
+    color: var(--b2u-orange-press);
+    border: 1px solid var(--b2u-orange-border);
+    padding: 2px 7px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .proposta-iframe-wrap {
+    width: 100%;
+    height: calc(100vh - 170px);
+    min-height: 640px;
+    background: #ffffff;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--b2u-line);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .proposta-iframe-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .btn-hdr-proposta {
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    font-weight: 700;
+  }
+  .btn-hdr-proposta:hover {
+    background: #ffffff;
+    color: var(--b2u-orange);
+  }
+  .btn-hdr-proposta.active {
+    background: #ffffff;
+    color: var(--b2u-orange);
+  }
 </style>
 </head>
 
@@ -572,6 +658,10 @@
       <span class="brand-descritor">Radar</span>
     </div>
     <div class="header-actions">
+      <button class="btn-hdr-action btn-hdr-proposta" id="btnHdrProposta" onclick="switchView('proposta')" title="Gerador de Propostas B2U">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Proposta
+      </button>
       <button class="btn-hdr-action" onclick="fetchDataFromSheet()" title="Recarregar dados da nuvem">
         <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
         Atualizar
@@ -613,6 +703,10 @@
       <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
       Mapa interativo
     </div>
+    <div class="view-tab" id="tabProposta" onclick="switchView('proposta')">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Gerar Proposta
+    </div>
   </div>
 </header>
 
@@ -631,6 +725,29 @@
 
   <!-- MAPA LEAFLET -->
   <div id="map-view"></div>
+
+  <!-- SEÇÃO GERADOR DE PROPOSTAS B2U -->
+  <div id="proposta-view">
+    <div class="proposta-toolbar">
+      <div class="proposta-toolbar-left">
+        <button class="btn-action" onclick="switchView('rota')">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          Voltar ao Radar
+        </button>
+        <span class="proposta-toolbar-title">
+          Gerador de Propostas
+          <span class="proposta-toolbar-badge">B2U</span>
+        </span>
+      </div>
+      <a href="Proposta B2U.html" target="_blank" class="btn-action" title="Abrir proposta em tela cheia / nova aba">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Tela cheia ↗
+      </a>
+    </div>
+    <div class="proposta-iframe-wrap">
+      <iframe id="frameProposta" src="about:blank" title="Gerador de Propostas B2U"></iframe>
+    </div>
+  </div>
 </main>
 
 <!-- BOTÃO FLUTUANTE ADICIONAR PONTO -->
@@ -728,7 +845,13 @@
       <div class="field-error-msg" id="err_note">Preencha as observações da visita realizada</div>
     </div>
 
-    <button class="btn-primary-b2u" onclick="saveQualifyData()">Salvar e sincronizar</button>
+    <div style="display:flex; gap:8px; margin-top:4px;">
+      <button class="btn-primary-b2u" style="flex:1;" onclick="saveQualifyData()">Salvar e sincronizar</button>
+      <button type="button" class="btn-action" style="padding:0 14px; border-color:var(--b2u-orange); color:var(--b2u-orange); font-weight:700; height:44px;" onclick="openPropostaForLead(currentEditingId)" title="Gerar proposta comercial para este lead">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Proposta
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1416,23 +1539,138 @@ function selectDay(d) {
 
 function switchView(view) {
   currentView = view;
-  document.getElementById("tabRota").className = `view-tab ${view === 'rota' ? 'active' : ''}`;
-  document.getElementById("tabMapa").className = `view-tab ${view === 'mapa' ? 'active' : ''}`;
+  const tabRota = document.getElementById("tabRota");
+  const tabMapa = document.getElementById("tabMapa");
+  const tabProposta = document.getElementById("tabProposta");
+  const btnHdrProposta = document.getElementById("btnHdrProposta");
+
+  if (tabRota) tabRota.className = `view-tab ${view === 'rota' ? 'active' : ''}`;
+  if (tabMapa) tabMapa.className = `view-tab ${view === 'mapa' ? 'active' : ''}`;
+  if (tabProposta) tabProposta.className = `view-tab ${view === 'proposta' ? 'active' : ''}`;
+  if (btnHdrProposta) {
+    if (view === 'proposta') btnHdrProposta.classList.add('active');
+    else btnHdrProposta.classList.remove('active');
+  }
+
+  const cardsWrap = document.getElementById("cardsWrap");
+  const searchWrap = document.getElementById("searchWrap");
+  const dayMetaWrap = document.getElementById("dayMetaWrap");
+  const mapView = document.getElementById("map-view");
+  const propostaView = document.getElementById("proposta-view");
+  const floatingBtn = document.querySelector(".floating-add-btn");
+  const cityBar = document.querySelector(".city-bar");
+  const dayNav = document.querySelector(".day-nav-wrapper");
 
   if (view === "rota") {
-    document.getElementById("cardsWrap").style.display = "block";
-    document.getElementById("searchWrap").style.display = "block";
-    document.getElementById("dayMetaWrap").style.display = "flex";
-    document.getElementById("map-view").style.display = "none";
-  } else {
-    document.getElementById("cardsWrap").style.display = "none";
-    document.getElementById("searchWrap").style.display = "none";
-    document.getElementById("dayMetaWrap").style.display = "none";
-    document.getElementById("map-view").style.display = "block";
+    document.body.classList.remove("view-proposta-active");
+    if (cardsWrap) cardsWrap.style.display = "block";
+    if (searchWrap) searchWrap.style.display = "block";
+    if (dayMetaWrap) dayMetaWrap.style.display = "flex";
+    if (mapView) mapView.style.display = "none";
+    if (propostaView) propostaView.style.display = "none";
+    if (floatingBtn) floatingBtn.style.display = "flex";
+    if (cityBar) cityBar.style.display = "flex";
+    if (dayNav) dayNav.style.display = "flex";
+  } else if (view === "mapa") {
+    document.body.classList.remove("view-proposta-active");
+    if (cardsWrap) cardsWrap.style.display = "none";
+    if (searchWrap) searchWrap.style.display = "none";
+    if (dayMetaWrap) dayMetaWrap.style.display = "none";
+    if (mapView) mapView.style.display = "block";
+    if (propostaView) propostaView.style.display = "none";
+    if (floatingBtn) floatingBtn.style.display = "flex";
+    if (cityBar) cityBar.style.display = "flex";
+    if (dayNav) dayNav.style.display = "flex";
     setTimeout(() => {
       if (map) map.invalidateSize();
       renderMap();
     }, 120);
+  } else if (view === "proposta") {
+    document.body.classList.add("view-proposta-active");
+    if (cardsWrap) cardsWrap.style.display = "none";
+    if (searchWrap) searchWrap.style.display = "none";
+    if (dayMetaWrap) dayMetaWrap.style.display = "none";
+    if (mapView) mapView.style.display = "none";
+    if (propostaView) propostaView.style.display = "flex";
+    if (floatingBtn) floatingBtn.style.display = "none";
+    if (cityBar) cityBar.style.display = "none";
+    if (dayNav) dayNav.style.display = "none";
+
+    const iframe = document.getElementById("frameProposta");
+    if (iframe && (!iframe.src || iframe.src === "about:blank" || iframe.src.endsWith("about:blank"))) {
+      iframe.src = "Proposta B2U.html";
+    }
+  }
+}
+
+function openPropostaForLead(stopId) {
+  if (!stopId) {
+    switchView('proposta');
+    return;
+  }
+  const stop = STOPS.find(s => s.id === stopId);
+  const data = STATE[stopId] || {};
+
+  try {
+    const KEY = 'b2u-proposta-editavel-v2';
+    let current = {};
+    try {
+      current = JSON.parse(localStorage.getItem(KEY) || '{}');
+    } catch(e) {}
+
+    // Titular: Nome do estabelecimento
+    if (stop && stop.name) {
+      current.holder = stop.name.toUpperCase();
+    }
+
+    // Se houver consultor responsável configurado
+    if (CONFIG.responsavel) {
+      current.sellerName = CONFIG.responsavel;
+    }
+
+    // Consumo: se o lead tiver consumo em kWh ou R$
+    const rawConsumo = data.consumo || (stop && stop.consumo) || "";
+    if (rawConsumo) {
+      const kwhMatch = rawConsumo.match(/(\d+[\d.,]*)\s*kwh/i);
+      const numMatch = rawConsumo.match(/(\d+[\d.,]*)/);
+      if (kwhMatch) {
+        current.consumptionKwh = kwhMatch[1].replace(/\./g, '');
+      } else if (numMatch) {
+        const val = parseFloat(numMatch[1].replace(/\./g, '').replace(',', '.'));
+        if (rawConsumo.includes('R$') || val > 1000) {
+          current.consumptionKwh = Math.round(val / 0.95).toString();
+        } else if (!isNaN(val) && val > 0) {
+          current.consumptionKwh = Math.round(val).toString();
+        }
+      }
+    }
+
+    // Desconto concorrente se houver
+    if (data.desconto_concorrente) {
+      const dMatch = data.desconto_concorrente.match(/(\d+(?:[.,]\d+)?)/);
+      if (dMatch) {
+        const currentDisc = parseFloat(dMatch[1].replace(',', '.'));
+        if (currentDisc && currentDisc > 0) {
+          current.discountPct = Math.min(22, Math.max(15, currentDisc + 2)).toString();
+        }
+      }
+    }
+
+    localStorage.setItem(KEY, JSON.stringify(current));
+  } catch(err) {
+    console.warn("Aviso ao vincular proposta ao lead:", err);
+  }
+
+  // Fecha o modal de qualificação se estiver aberto
+  closeModal('modalQualify');
+
+  // Abre a visualização da proposta
+  switchView('proposta');
+
+  // Atualiza o iframe com o novo estado se já estiver carregado
+  const iframe = document.getElementById("frameProposta");
+  if (iframe) {
+    iframe.src = "Proposta B2U.html?t=" + new Date().getTime();
   }
 }
 
@@ -1551,6 +1789,10 @@ function renderCards() {
           <button class="btn-action" onclick="openQualifyModal('${stop.id}')">
             <svg class="icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Qualificar
+          </button>
+          <button class="btn-action" style="border-color:var(--b2u-orange-border); color:var(--b2u-orange-press);" onclick="openPropostaForLead('${stop.id}')" title="Gerar proposta para ${stop.name}">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Proposta
           </button>
         </div>
 
